@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="hero">
+  <p class="eyebrow">Human + AI: Better Together</p>
+  <h1>Your AI agents act.<br>You countersign.</h1>
+  <p class="lede">{{ settings.app_name }} is a human-approval layer for AI agents. Agents ask before risky actions, you approve with one tap, and they earn autonomy from your decisions.</p>
+  <div class="actions">
+    <a class="btn btn-primary" href="/docs">Explore the API</a>
+    <a class="btn" href="/health">System status</a>
+  </div>
+</section>
+
+<section class="steps" aria-label="How it works">
+  <article class="card">
+    <span class="num">1</span>
+    <h2>The agent asks</h2>
+    <p>Before it refunds, emails or changes data, the agent asks {{ settings.app_name }} through MCP or one REST call.</p>
+  </article>
+  <article class="card">
+    <span class="num">2</span>
+    <h2>Your rules run first</h2>
+    <p>Hard limits are checked before any AI is involved, so a manipulated agent can't talk its way past them.</p>
+  </article>
+  <article class="card">
+    <span class="num">3</span>
+    <h2>AI explains, you decide</h2>
+    <p>An AI reviewer sums up the risk in plain English. You approve, edit or reject from the dashboard or Telegram.</p>
+  </article>
+  <article class="card">
+    <span class="num">4</span>
+    <h2>Trust is earned</h2>
+    <p>Approve the same safe action often enough and {{ settings.app_name }} proposes a rule. You switch it on and the agent gains autonomy.</p>
+  </article>
+</section>
+{% endblock %}
