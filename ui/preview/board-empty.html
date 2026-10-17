@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="refresh" content="15">
+<title>Live board · Apprentice</title>
+<meta name="description" content="Apprentice checks every request, splits it into tasks and routes them to the right team. A manager makes the calls that matter.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%20aria-hidden%3D%22true%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%229%22%20fill%3D%22%231B1A17%22%2F%3E%3Cpath%20d%3D%22M9.5%2023.5%2016%208.5l6.5%2015%22%20fill%3D%22none%22%20stroke%3D%22%23FBF9F4%22%20stroke-width%3D%222.6%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3Cpath%20d%3D%22M11.6%2018.2h8.8%22%20stroke%3D%22%23C8361E%22%20stroke-width%3D%222.6%22%20stroke-linecap%3D%22round%22%2F%3E%3C%2Fsvg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#F5F1E8;--surface:#FBF9F4;--white:#FFFFFF;--ink:#1B1A17;--body:#3B3934;--graphite:#6E6A60;--hair:#DDD6C7;--hair-soft:#E9E3D6;
+--pencil:#C8361E;--pencil-bg:#FBEDE7;--ok:#2F6B4F;--ok-bg:#E3EEE6;--wait:#8F610A;--wait-bg:#F5EAD0;--muted-bg:#ECE7DC;
+--serif:'Fraunces',Georgia,'Times New Roman',serif;--sans:'IBM Plex Sans','Segoe UI',system-ui,-apple-system,sans-serif;--mono:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.55 var(--sans);font-variant-numeric:tabular-nums}
+a{color:inherit}
+.wrap{max-width:1200px;margin:0 auto;padding:0 28px}
+
+/* app header */
+.appbar{background:var(--surface);border-bottom:1px solid var(--hair)}
+.appbar .wrap{display:flex;align-items:center;gap:28px;height:64px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-family:var(--serif);font-weight:600;font-size:21px;letter-spacing:-.01em}
+.mark{width:30px;height:30px;flex:none}
+.nav{display:flex;gap:4px;margin-right:auto}
+.nav a{padding:8px 12px;border-radius:8px;text-decoration:none;color:var(--graphite);font-weight:500;font-size:14px}
+.nav a:hover{color:var(--ink);background:var(--paper)}
+.nav a.on{color:var(--ink);background:var(--paper);box-shadow:inset 0 0 0 1px var(--hair)}
+.live{display:flex;align-items:center;gap:8px;color:var(--graphite);font-size:13px;white-space:nowrap}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--ok);animation:pulse 2.4s ease-out infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(47,107,79,.45)}70%{box-shadow:0 0 0 8px rgba(47,107,79,0)}100%{box-shadow:0 0 0 0 rgba(47,107,79,0)}}
+@media (prefers-reduced-motion:reduce){.dot{animation:none}}
+.btn{display:inline-flex;align-items:center;gap:10px;background:var(--ink);color:var(--surface);padding:10px 16px;border-radius:999px;font-weight:600;font-size:14px;text-decoration:none;white-space:nowrap}
+.btn:hover{background:#000}.btn.small{padding:9px 15px;font-size:13.5px}
+
+/* page header */
+.pagehead{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;padding:34px 0 22px}
+.eyebrow{margin:0 0 6px;font-family:var(--mono);font-size:12px;letter-spacing:.04em;color:var(--graphite);text-transform:uppercase}
+h1{margin:0;font-family:var(--serif);font-weight:600;font-size:clamp(30px,3.4vw,40px);line-height:1.08;letter-spacing:-.02em}
+.lede{margin:8px 0 0;color:var(--body);font-size:15.5px;max-width:62ch}
+.tagline{margin:0;font-family:var(--serif);font-size:18px;line-height:1.3;text-align:right;white-space:nowrap}
+.tagline em{font-style:italic;font-weight:500;color:var(--pencil)}
+
+/* pipeline */
+.label{margin:0 0 10px;font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--graphite);font-weight:600}
+.pipeline{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));background:var(--white);border:1px solid var(--hair);border-radius:16px;overflow:hidden}
+.stage{position:relative;display:grid;grid-template-columns:auto 1fr;grid-template-areas:"n v" "l l" "note note";gap:2px 10px;padding:16px 18px 18px;border-left:1px solid var(--hair-soft)}
+.stage:first-child{border-left:0}
+.stage:not(:last-child)::after{content:"";position:absolute;right:-7px;top:50%;width:12px;height:12px;background:var(--white);border-top:1px solid var(--hair);border-right:1px solid var(--hair);transform:translateY(-50%) rotate(45deg);z-index:1}
+.s-n{grid-area:n;align-self:center;display:inline-grid;place-items:center;width:22px;height:22px;border-radius:6px;background:var(--paper);font-family:var(--mono);font-size:11.5px;color:var(--graphite)}
+.s-v{grid-area:v;font-family:var(--serif);font-weight:600;font-size:30px;line-height:1}
+.s-l{grid-area:l;margin-top:8px;font-weight:600;font-size:14px}
+.s-note{grid-area:note;color:var(--graphite);font-size:12.5px;line-height:1.35}
+.stage.human{background:var(--pencil-bg)}.stage.human::after{background:var(--pencil-bg)}
+.stage.human .s-n{background:var(--pencil);color:#fff}.stage.human .s-v{color:var(--pencil)}
+.stage.end .s-v{color:var(--graphite)}
+
+/* KPI cards */
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:18px 0 0}
+.kpi{background:var(--white);border:1px solid var(--hair);border-radius:14px;padding:16px 18px}
+.k-l{font-size:13px;color:var(--graphite);font-weight:500}
+.k-v{margin-top:6px;font-family:var(--serif);font-weight:600;font-size:30px;line-height:1.05}
+.k-note{margin-top:4px;color:var(--graphite);font-size:12.5px}
+.kpi.accent .k-v{color:var(--pencil)}
+
+/* main grid */
+.main{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:28px;padding:30px 0 48px;align-items:start}
+.panel{background:var(--white);border:1px solid var(--hair);border-radius:16px;overflow:hidden}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;border-bottom:1px solid var(--hair-soft)}
+h2{margin:0;font-family:var(--serif);font-weight:600;font-size:19px;letter-spacing:-.01em}
+.panel-sub{margin:0;color:var(--graphite);font-size:12.5px}
+.panel-sub s{color:var(--pencil);text-decoration-thickness:2px}
+
+/* tabs */
+.tabs{display:flex;gap:4px;padding:10px 12px 0;border-bottom:1px solid var(--hair-soft);overflow-x:auto}
+.tab{display:inline-flex;align-items:center;gap:8px;padding:9px 12px;text-decoration:none;color:var(--graphite);font-weight:500;font-size:14px;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.tab:hover{color:var(--ink)}.tab.on{color:var(--ink);border-bottom-color:var(--ink)}
+.t-c{min-width:22px;padding:1px 7px;border-radius:999px;background:var(--paper);font-size:12px;text-align:center;color:var(--graphite)}
+.tab.on .t-c{background:var(--ink);color:#fff}
+
+/* table */
+table{width:100%;border-collapse:collapse}
+th{padding:10px 18px;text-align:left;font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--graphite);font-weight:600;background:var(--surface);border-bottom:1px solid var(--hair-soft)}
+td{padding:14px 18px;border-bottom:1px solid var(--hair-soft);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+tbody tr:hover td{background:var(--surface)}
+.ref{display:block;font-family:var(--mono);font-size:12.5px}
+.time{display:block;color:var(--graphite);font-size:12.5px}
+.tag{margin-left:6px;padding:1px 6px;border:1px solid var(--hair);border-radius:6px;font-size:11px;color:var(--graphite);vertical-align:1px}
+.c-title{font-weight:500;line-height:1.35}
+.c-route{font-size:14px;line-height:1.35}
+.c-route s{color:var(--pencil);text-decoration-thickness:2px}
+.c-route .arrow{margin:0 6px;color:var(--graphite)}
+.c-route b{font-weight:600;white-space:nowrap}
+.c-route .by{display:block;margin-top:2px;color:var(--graphite);font-size:12.5px}
+.dim{color:var(--graphite)}
+.chip{display:inline-flex;align-items:center;gap:7px;padding:4px 10px;border-radius:999px;font-size:12.5px;font-weight:500;line-height:1.3;white-space:nowrap}
+.chip::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;flex:none}
+.chip.ok{background:var(--ok-bg);color:var(--ok)}.chip.wait{background:var(--wait-bg);color:var(--wait)}
+.chip.wait-line{box-shadow:inset 0 0 0 1px #E3C98F;color:var(--wait)}.chip.flag{background:var(--pencil-bg);color:var(--pencil)}
+.chip.muted{background:var(--muted-bg);color:var(--graphite)}.chip.muted-line,.chip.neutral{box-shadow:inset 0 0 0 1px var(--hair);color:var(--graphite)}
+.empty{padding:34px 24px;text-align:center}.empty p{margin:0 0 14px;color:var(--body)}
+
+/* sidebar */
+.side{display:grid;gap:22px}
+.rules{list-style:none;margin:0;padding:0}
+.rule{padding:15px 18px;border-top:1px solid var(--hair-soft)}.rule:first-child{border-top:0}
+.rule q{display:block;font-family:var(--serif);font-size:16px;line-height:1.4;quotes:"\201C" "\201D"}
+.rule .meta{margin-top:8px;display:flex;flex-wrap:wrap;gap:4px 12px;color:var(--graphite);font-size:12.5px}
+.rule .meta s{color:var(--pencil);text-decoration-thickness:2px}
+.rules-empty{margin:0;padding:16px 18px;color:var(--graphite);font-size:13.5px}
+.teams{list-style:none;margin:0;padding:8px 18px 14px}
+.teams li{display:grid;grid-template-columns:118px minmax(0,1fr) 26px;gap:10px;align-items:center;padding:7px 0;font-size:13.5px}
+.t-bar{height:6px;background:var(--muted-bg);border-radius:999px;overflow:hidden}.t-bar i{display:block;height:100%;background:var(--ink);border-radius:999px}
+.t-n{text-align:right;font-family:var(--mono);font-size:12.5px;color:var(--graphite)}
+
+.foot{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px 24px;padding:20px 0 36px;border-top:1px solid var(--hair);color:var(--graphite);font-size:13px}
+
+/* responsive */
+@media (max-width:1080px){
+  .main{grid-template-columns:1fr}
+  .tagline{display:none}
+  .pipeline{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .stage:nth-child(4){border-left:0}.stage:nth-child(n+4){border-top:1px solid var(--hair-soft)}
+  .stage::after{display:none}
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:760px){
+  .wrap{padding:0 16px}
+  .appbar .wrap{gap:12px}
+  .nav,.live{display:none}
+  .brand{margin-right:auto}
+  .pipeline{grid-template-columns:1fr 1fr}
+  .stage{border-left:0;border-top:1px solid var(--hair-soft)}
+  .stage:nth-child(-n+2){border-top:0}.stage:nth-child(even){border-left:1px solid var(--hair-soft)}
+  thead{display:none}
+  table,tbody,tr,td{display:block;width:100%}
+  tr{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"ref status" "title title" "route route";gap:4px 12px;padding:14px 16px;border-bottom:1px solid var(--hair-soft)}
+  td{padding:0;border:0}
+  .c-ref{grid-area:ref;display:flex;gap:10px;align-items:baseline}.c-from{display:none}
+  .c-title{grid-area:title}.c-route{grid-area:route}.c-status{grid-area:status}
+}
+</style>
+</head>
+<body>
+<header class="appbar"><div class="wrap">
+  <a class="brand" href="https://agentika-app.alternatefutures.ai/webhook/board" target="_top"><svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#1B1A17"/><path d="M9.5 23.5 16 8.5l6.5 15" fill="none" stroke="#FBF9F4" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M11.6 18.2h8.8" stroke="#C8361E" stroke-width="2.6" stroke-linecap="round"/></svg>Apprentice</a>
+  <nav class="nav" aria-label="Main">
+    <a class="on" href="https://agentika-app.alternatefutures.ai/webhook/board" target="_top">Live board</a>
+    <a href="https://agentika-app.alternatefutures.ai/form/request" target="_blank" rel="noopener">Send a request</a>
+    <a href="https://agentika-app.alternatefutures.ai/webhook/inbox" target="_top">Manager inbox</a>
+  </nav>
+  <span class="live"><span class="dot"></span>Live · 14:35 PKT</span>
+  <a class="btn" href="https://agentika-app.alternatefutures.ai/form/request" target="_blank" rel="noopener">Send a request <span aria-hidden="true">→</span></a>
+</div></header>
+
+<main class="wrap">
+  <section class="pagehead">
+    <div>
+      <p class="eyebrow">Orbit Studio · request pipeline</p>
+      <h1>Live board</h1>
+      <p class="lede">Apprentice checks every request, plans the work and routes it to the right team. A manager makes the calls that matter, and each rule they teach is remembered.</p>
+    </div>
+    <p class="tagline">AI sorts the work.<br><em>People make the call.</em></p>
+  </section>
+
+  <p class="label">How requests flow</p>
+  <ol class="pipeline">
+    <li class="stage "><span class="s-n">1</span><span class="s-v">0</span><span class="s-l">Received</span><span class="s-note">From the website form or staff</span></li>
+    <li class="stage "><span class="s-n">2</span><span class="s-v">0</span><span class="s-l">Checked by AI</span><span class="s-note">Genuine, clear and our kind of work?</span></li>
+    <li class="stage human"><span class="s-n">3</span><span class="s-v">0</span><span class="s-l">With a manager</span><span class="s-note">Needs a human decision</span></li>
+    <li class="stage "><span class="s-n">4</span><span class="s-v">0</span><span class="s-l">Sent to teams</span><span class="s-note">Tasks posted in team channels</span></li>
+    <li class="stage end"><span class="s-n">–</span><span class="s-v">0</span><span class="s-l">Declined</span><span class="s-note">Nothing was assigned</span></li>
+  </ol>
+
+  <section class="kpis" aria-label="Key numbers">
+    <div class="kpi "><div class="k-l">Handled automatically</div><div class="k-v">0</div><div class="k-note">– of requests sent to teams</div></div>
+    <div class="kpi "><div class="k-l">Decided by a manager</div><div class="k-v">0</div><div class="k-note">Approvals, corrections and declines</div></div>
+    <div class="kpi accent"><div class="k-l">Approved as proposed</div><div class="k-v">–</div><div class="k-note">Plans a manager approved without changes</div></div>
+    <div class="kpi "><div class="k-l">Rules learned</div><div class="k-v">0</div><div class="k-note">Taught by managers, applied every time</div></div>
+  </section>
+
+  <div class="main">
+    <section class="panel" aria-labelledby="requests">
+      <div class="panel-head"><h2 id="requests">Requests</h2><p class="panel-sub">Newest first · <s>struck out</s> = a manager corrected Apprentice</p></div>
+      <nav class="tabs" aria-label="Filter requests"><a class="tab on" href="https://agentika-app.alternatefutures.ai/webhook/board?view=all" target="_top">All<span class="t-c">0</span></a><a class="tab" href="https://agentika-app.alternatefutures.ai/webhook/board?view=manager" target="_top">With a manager<span class="t-c">0</span></a><a class="tab" href="https://agentika-app.alternatefutures.ai/webhook/board?view=sent" target="_top">Sent<span class="t-c">0</span></a><a class="tab" href="https://agentika-app.alternatefutures.ai/webhook/board?view=declined" target="_top">Declined<span class="t-c">0</span></a></nav>
+      <div class="empty"><p><b>No requests yet.</b> Send the first one and watch Apprentice check it, plan it and route it.</p><a class="btn small" href="https://agentika-app.alternatefutures.ai/form/request" target="_blank" rel="noopener">Send a request <span aria-hidden="true">→</span></a></div>
+    </section>
+
+    <aside class="side">
+      <section class="panel" aria-labelledby="learned">
+        <div class="panel-head"><h2 id="learned">What Apprentice has learned</h2></div>
+        <p class="rules-empty">Nothing yet. When a manager corrects a request and ticks <i>Save as a rule</i>, the rule appears here and Apprentice follows it from then on.</p>
+      </section>
+      <section class="panel" aria-labelledby="teams">
+        <div class="panel-head"><h2 id="teams">Work per team</h2><p class="panel-sub">Tasks sent</p></div>
+        <ul class="teams"><li><span class="t-name">Sales</span><span class="t-bar"><i style="width:0%"></i></span><span class="t-n">0</span></li><li><span class="t-name">Design</span><span class="t-bar"><i style="width:0%"></i></span><span class="t-n">0</span></li><li><span class="t-name">Engineering</span><span class="t-bar"><i style="width:0%"></i></span><span class="t-n">0</span></li><li><span class="t-name">AI &amp; Data</span><span class="t-bar"><i style="width:0%"></i></span><span class="t-n">0</span></li><li><span class="t-name">Marketing</span><span class="t-bar"><i style="width:0%"></i></span><span class="t-n">0</span></li><li><span class="t-name">Finance &amp; Legal</span><span class="t-bar"><i style="width:0%"></i></span><span class="t-n">0</span></li></ul>
+      </section>
+    </aside>
+  </div>
+</main>
+
+<footer class="wrap"><div class="foot">
+  <span>Apprentice · AI sorts the work. People make the call.</span>
+  <span>Built with n8n, hosted on Alternate Clouds · Updates every 15 seconds · Emails, budgets and messages are never shown here</span>
+</div></footer>
+</body>
+</html>

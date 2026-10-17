@@ -1,0 +1,88 @@
+/* Apprentice form styling for n8n 2.6.3, themed with the Clouds by Alternate Futures brand specification.
+   Paste into BOTH Form Triggers → Options → Custom Form Styling (the deploy script does this).
+   n8n sanitizes this field, so it avoids double quotes, ampersands and angle brackets. */
+@import url(https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700);
+
+:root {
+	color-scheme: only light;
+	--font-family: 'Instrument Sans', 'Segoe UI', system-ui, -apple-system, sans-serif;
+	--font-weight-normal: 400;
+	--font-weight-bold: 600;
+	--font-size-body: 13px;
+	--font-size-label: 14px;
+	--font-size-input: 15px;
+	--font-size-header: 30px;
+	--font-size-paragraph: 15px;
+	--font-size-subheader: 15px;
+	--font-size-link: 12px;
+	--font-size-error: 12.5px;
+
+	/* Cream page, white card, Dark Blue headings, Brand Blue actions, Terracotta only for alerts */
+	--color-background: #F9F5EE;
+	--color-card-bg: #FFFFFF;
+	--color-card-border: #E6DFD2;
+	--color-card-shadow: rgba(0, 0, 175, 0.05);
+	--color-link: #66635E;
+	--color-header: #0000AF;
+	--color-label: #1A1A1A;
+	--color-input-border: #D9D1C2;
+	--color-input-text: #1A1A1A;
+	--color-focus-border: #000AFF;
+	--color-submit-btn-bg: #000AFF;
+	--color-submit-btn-text: #FFFFFF;
+	--color-error: #BE4200;
+	--color-required: #BE4200;
+	--color-clear-button-bg: #66635E;
+	--color-html-text: #1A1A1A;
+	--color-html-link: #000AFF;
+	--color-header-subtext: #66635E;
+	--color-test-notice-text: #1A1A1A;
+	--color-test-notice-bg: #FFC7AA;
+	--color-test-notice-border: #FFC7AA;
+
+	--border-radius-card: 16px;
+	--card-border-radius: 16px;
+	--border-radius-input: 10px;
+	--padding-container-top: 48px;
+	--padding-card: 32px;
+	--card-padding: 32px;
+	--padding-form-input: 13px;
+	--container-width: 560px;
+	--submit-btn-height: 50px;
+	--box-shadow-card: 0 1px 2px rgba(0, 0, 175, 0.04), 0 16px 40px rgba(0, 0, 175, 0.06);
+	--opacity-placeholder: 0.45;
+}
+
+h1 {
+	font-weight: 700;
+	letter-spacing: -0.02em;
+}
+
+input,
+textarea,
+select,
+button {
+	font-family: inherit;
+}
+
+textarea {
+	min-height: 132px;
+	line-height: 1.5;
+}
+
+button {
+	border-radius: 999px;
+	font-weight: 500;
+	letter-spacing: 0.01em;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+	box-shadow: 0 0 0 3px rgba(0, 10, 255, 0.12);
+}
+
+html,
+body {
+	background: #F9F5EE;
+}

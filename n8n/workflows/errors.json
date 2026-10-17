@@ -1,0 +1,128 @@
+{
+  "name": "Apprentice \u00b7 errors",
+  "nodes": [
+    {
+      "id": "b5b54440-de05-4e21-9e6d-aa87bf19034d",
+      "name": "On error",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "69de5e2d-3b8a-45d3-97cc-dd84be2c50fc",
+      "name": "Load departments",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        220,
+        0
+      ],
+      "parameters": {
+        "resource": "row",
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "departments"
+        },
+        "returnAll": true
+      },
+      "alwaysOutputData": true,
+      "executeOnce": true
+    },
+    {
+      "id": "cb695a15-5427-439d-94f2-1eabffc5b2a6",
+      "name": "Error message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const BASE = \"https://agentika-app.alternatefutures.ai\";\n// ---- Apprentice message kit (prepended to every Code node that posts a message) ----\n// One message design \u2192 Slack (Block Kit, colored card) or Discord (embed), chosen from the webhook URL.\nconst IS_SLACK = (u) => /^https:\\/\\/hooks\\.slack\\.com\\//.test(String(u || ''));\nconst IS_DISCORD = (u) => /^https:\\/\\/(discord|discordapp)\\.com\\/api\\/webhooks\\//.test(String(u || ''));\n// Clouds by Alternate Futures palette: Brand Blue for actions and human decisions, Dark Blue for ownership,\n// Apricot for 'waiting for a manager', Terracotta only for alerts.\nconst COLORS = { ok: '#000AFF', human: '#000AFF', ink: '#0000AF', wait: '#FFC7AA', alert: '#BE4200', muted: '#9A968E' };\nconst TYPE_TITLES = {\n  'A new project': 'New project', 'Support for existing work': 'Support request', 'Something else': 'Request', 'Internal task': 'Internal task',\n};\nconst clip = (s, n) => { const t = String(s ?? '').trim(); return t.length > n ? t.slice(0, n - 1) + '\u2026' : t; };\n\n// Text from requesters (or written by the model from it) is untrusted:\n// no pings, no markup tricks, no clickable links.\nfunction untrusted(s, n, slack) {\n  const t = clip(s, n).replace(/(h)ttp(s?):\\/\\//gi, '$1xxp$2://');\n  return slack\n    ? t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')\n    : t.replace(/([\\\\*_~`|>#[\\]()])/g, '\\\\$1').replace(/@/g, '@\\u200b');\n}\n\n// build(f, u) returns { title, color, lead, fields: [[name, value]], sections: [{ heading, lines }],\n//   quote: { label, text }, button: { text, url }, footer }. f = trusted formatting, u = untrusted text.\nfunction render(url, build) {\n  const slack = IS_SLACK(url);\n  const f = slack\n    ? { b: (x) => `*${x}*`, s: (x) => `~${x}~` }\n    : { b: (x) => `**${x}**`, s: (x) => `~~${x}~~` };\n  const u = (s, n) => untrusted(s, n, slack);\n  const m = build(f, u);\n  const sections = (m.sections || []).filter((sec) => sec.lines && sec.lines.filter(Boolean).length);\n  const quoteText = m.quote ? m.quote.text.split('\\n').filter((l) => l.trim()).slice(0, 8).map((l) => `> ${l}`).join('\\n') : '';\n  if (slack) {\n    const blocks = [];\n    if (m.lead) blocks.push({ type: 'section', text: { type: 'mrkdwn', text: clip(m.lead, 2900) } });\n    if (m.fields && m.fields.length) blocks.push({ type: 'section', fields: m.fields.slice(0, 10).map(([k, v]) => ({ type: 'mrkdwn', text: clip(`*${k}*\\n${v || '\u2013'}`, 1990) })) });\n    for (const sec of sections) blocks.push({ type: 'section', text: { type: 'mrkdwn', text: clip(`${sec.heading ? `*${sec.heading}*\\n` : ''}${sec.lines.filter(Boolean).join('\\n')}`, 2900) } });\n    if (quoteText) blocks.push({ type: 'section', text: { type: 'mrkdwn', text: clip(`*${m.quote.label}*\\n${quoteText}`, 2900) } });\n    if (m.button) blocks.push({ type: 'actions', elements: [{ type: 'button', text: { type: 'plain_text', text: clip(m.button.text, 70) }, url: m.button.url, style: 'primary' }] });\n    if (m.footer) blocks.push({ type: 'context', elements: [{ type: 'mrkdwn', text: clip(m.footer, 290) }] });\n    const body = { text: `*${clip(m.title, 150)}*` };\n    if (blocks.length) body.attachments = [{ color: COLORS[m.color] || COLORS.ink, blocks }];\n    return body;\n  }\n  const description = [\n    m.lead,\n    ...sections.map((sec) => `${sec.heading ? `**${sec.heading}**\\n` : ''}${sec.lines.filter(Boolean).join('\\n')}`),\n    quoteText ? `**${m.quote.label}**\\n${quoteText}` : '',\n    m.button ? `[${m.button.text} \u2192](${m.button.url})` : '',\n  ].filter(Boolean).join('\\n\\n');\n  const embed = { title: clip(m.title, 250), color: parseInt((COLORS[m.color] || COLORS.ink).slice(1), 16), timestamp: new Date().toISOString() };\n  if (description) embed.description = clip(description, 4000); // Discord rejects empty descriptions\n  if (m.fields && m.fields.length) embed.fields = m.fields.slice(0, 10).map(([k, v]) => ({ name: clip(k, 250), value: clip(v || '\u2013', 1000), inline: true }));\n  if (m.footer) embed.footer = { text: clip(m.footer, 200) };\n  return { username: 'Apprentice', allowed_mentions: { parse: [] }, embeds: [embed] };\n}\n\n// The webhook for a team or system channel (rows named \"_review\" and \"_log\"), from the departments table.\nfunction hookOf(name) {\n  try {\n    const d = $('Load departments').all().map((i) => i.json).find((x) => x.name === name);\n    return d && (IS_SLACK(d.webhook_url) || IS_DISCORD(d.webhook_url)) ? d.webhook_url : null;\n  } catch (e) { return null; }\n}\nconst get = (node) => { try { return $(node).first().json; } catch (e) { return null; } };\n// ---- end of message kit ----\n\n// Posts any workflow failure to the activity log (if a log channel is connected).\nconst e = $('On error').first().json;\nconst url = hookOf('_log');\nif (!url) return [];\nconst ex = e.execution || {};\nconst where = ex.lastNodeExecuted || 'an unknown step';\nconst msg = (ex.error && ex.error.message) || 'Unknown error';\nreturn [{ json: { url, body: render(url, (f, u) => ({\n  title: 'Something went wrong',\n  color: 'alert',\n  lead: `${f.b(u((e.workflow && e.workflow.name) || 'A workflow', 80))} stopped at ${f.b(u(where, 60))}: ${u(msg, 300)}`,\n  footer: `Execution ${u(ex.id || '?', 20)}`,\n})) } }];\n"
+      }
+    },
+    {
+      "id": "867314d4-3b83-49c3-bfb4-bc0e38cbc045",
+      "name": "Post error",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        660,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.url }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "sendHeaders": true,
+        "specifyHeaders": "keypair",
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (compatible; Apprentice/1.0)"
+            }
+          ]
+        },
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 500
+            }
+          }
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "connections": {
+    "On error": {
+      "main": [
+        [
+          {
+            "node": "Load departments",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load departments": {
+      "main": [
+        [
+          {
+            "node": "Error message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error message": {
+      "main": [
+        [
+          {
+            "node": "Post error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

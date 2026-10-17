@@ -3,16 +3,14 @@
 .env.*
 !.env.example
 
-# Python
-.venv/
+# Builder state (credential ids, single-use setup link)
+n8n/.setup-path
+n8n/.state.json
+
+# Python / Node caches
 __pycache__/
 *.pyc
-.pytest_cache/
-
-# Local data (the app re-seeds on startup)
-data/
-*.db
-*.sqlite3
+node_modules/
 
 # Editors / OS
 .vscode/

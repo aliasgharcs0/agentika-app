@@ -1,0 +1,81 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="color-scheme" content="only light">
+<title>Review REQ-1001 · Apprentice</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%20aria-hidden%3D%22true%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%229%22%20fill%3D%22%23000AFF%22%2F%3E%3Cpath%20d%3D%22M9.5%2023.5%2016%208.5l6.5%2015%22%20fill%3D%22none%22%20stroke%3D%22%23FFFFFF%22%20stroke-width%3D%222.6%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3Cpath%20d%3D%22M11.6%2018.2h8.8%22%20stroke%3D%22%23FFC7AA%22%20stroke-width%3D%222.6%22%20stroke-linecap%3D%22round%22%2F%3E%3C%2Fsvg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Theme: Clouds by Alternate Futures brand specification */
+:root{color-scheme:only light;--cream:#F9F5EE;--white:#FFFFFF;--brand:#000AFF;--brand-hover:#0008CC;--brand-tint:#EEF0FF;--dark-blue:#0000AF;--sky:#C8E0E4;--apricot:#FFC7AA;
+--terracotta:#BE4200;--terracotta-tint:#FBEADF;--text:#1A1A1A;--muted:#66635E;--hair:#E6DFD2;--hair-soft:#EFE9DE;--neutral:#F1ECE3;
+--sans:'Instrument Sans','Segoe UI',system-ui,sans-serif;--serif:'Instrument Serif',Georgia,serif;--mono:'JetBrains Mono',ui-monospace,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--cream);color:var(--text);font:16px/1.55 var(--sans)}a{color:inherit}
+.wrap{max-width:760px;margin:0 auto;padding:0 20px}
+.appbar{background:var(--white);border-bottom:1px solid var(--hair)}
+.appbar .bar{max-width:1200px;margin:0 auto;padding:0 28px;display:flex;align-items:center;gap:28px;height:64px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:20px;letter-spacing:-.01em;text-decoration:none;color:var(--dark-blue)}
+.mark{width:30px;height:30px}
+.nav{display:flex;gap:4px;margin-right:auto}
+.nav a{padding:8px 12px;border-radius:8px;text-decoration:none;color:var(--muted);font-weight:500;font-size:14px}
+.nav a:hover{color:var(--text);background:var(--cream)}.nav a.on{color:var(--brand);background:var(--brand-tint)}
+.tag{font-size:13px;color:var(--muted);white-space:nowrap}
+@media (max-width:760px){.appbar .bar{padding:0 16px;gap:12px}.nav{display:none}.brand{margin-right:auto}}
+.card{background:var(--white);border:1px solid var(--hair);border-radius:18px;padding:28px;margin:28px 0 40px}
+.eyebrow{margin:0 0 6px;font-family:var(--mono);font-size:12.5px;color:var(--muted)}
+h1{font-weight:700;font-size:clamp(26px,4vw,34px);line-height:1.12;letter-spacing:-.02em;margin:0 0 10px;color:var(--dark-blue)}
+h3{margin:0 0 8px;font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.summary{margin:0 0 18px;font-size:16px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 22px}
+.chip{display:inline-flex;align-items:center;gap:7px;padding:4px 11px;border-radius:999px;font-size:13px;font-weight:500;background:var(--apricot);color:var(--text)}
+.chip.flag{background:var(--terracotta-tint);color:var(--terracotta)}.chip.ok{background:var(--sky);color:var(--dark-blue)}.chip.muted{background:var(--neutral);color:var(--muted)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:0 0 22px}
+.box{border:1px solid var(--hair);border-radius:14px;padding:14px 16px;background:var(--cream)}.box p{margin:0}.box b{color:var(--dark-blue)}
+section{margin:0 0 22px}
+.plan{list-style:none;margin:0;padding:0;border:1px solid var(--hair);border-radius:14px;overflow:hidden}
+.plan li{display:grid;grid-template-columns:28px minmax(0,1fr) auto 52px;gap:12px;align-items:center;padding:11px 14px;border-top:1px solid var(--hair-soft)}
+.plan li:first-child{border-top:0}.plan .n{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
+.plan .t b{display:block;font-weight:600}.plan .t span{display:block;color:var(--muted);font-size:13.5px}
+.plan .d{font-size:13px;padding:3px 9px;background:var(--sky);color:var(--dark-blue);border-radius:999px;white-space:nowrap}
+.plan .c{font-family:var(--mono);font-size:12.5px;color:var(--muted);text-align:right}
+blockquote{margin:0;padding:14px 16px;border-left:3px solid var(--medium-blue,#A5B2FF);background:var(--cream);border-radius:0 12px 12px 0;white-space:pre-wrap}
+.meta{margin:8px 0 0;color:var(--muted);font-size:13px}
+form{border-top:1px solid var(--hair-soft);padding-top:22px}
+.choices{border:0;padding:0;margin:0 0 18px;display:grid;gap:10px}
+.choice{display:grid;grid-template-columns:22px 1fr;gap:4px 10px;align-items:start;padding:14px 16px;border:1px solid var(--hair);border-radius:14px;background:var(--white);cursor:pointer}
+.choice input{margin:3px 0 0;accent-color:var(--brand)}.choice b{font-weight:600}.choice span{grid-column:2;color:var(--muted);font-size:13.5px}
+.choice:has(input:checked){border-color:var(--brand);box-shadow:0 0 0 1px var(--brand);background:var(--brand-tint)}
+label.field{display:block;margin:0 0 16px;font-weight:600;font-size:14px}
+label.field .hint,label.check .hint{display:block;font-weight:400;color:var(--muted);font-size:13px}
+select,textarea,input[type=text]{display:block;width:100%;margin-top:6px;padding:12px 13px;border:1px solid #D9D1C2;border-radius:10px;background:var(--white);font:15px var(--sans);color:var(--text)}
+textarea{min-height:96px;resize:vertical}select:focus,textarea:focus,input:focus{outline:2px solid rgba(0,10,255,.2);border-color:var(--brand)}
+label.check{display:grid;grid-template-columns:22px 1fr;gap:2px 10px;margin:0 0 18px;padding:14px 16px;border:1px dashed var(--brand);border-radius:14px;background:var(--brand-tint);font-weight:600;font-size:14px;cursor:pointer}
+label.check input{margin:3px 0 0;accent-color:var(--brand)}label.check .hint{grid-column:2}
+@supports selector(:has(*)){form .reveal{display:none}form:has(input[value="change"]:checked) .reveal-change{display:block}form:has(input[value="change"]:checked) label.check.reveal-change{display:grid}form:has(input[value="plan"]:checked) label.check.reveal-plan{display:grid}}
+.btn{display:inline-flex;align-items:center;gap:10px;border:0;background:var(--brand);color:var(--white);padding:13px 22px;border-radius:999px;font:500 15px var(--sans);cursor:pointer;text-decoration:none}
+.btn:hover{background:var(--brand-hover)}.btn.line{background:transparent;color:var(--brand);border:1px solid var(--brand)}
+.list{list-style:none;margin:0;padding:0}.list li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 14px;align-items:center;padding:16px 0;border-top:1px solid var(--hair-soft)}
+.list li:first-child{border-top:0}.list .ref{font-family:var(--mono);font-size:12.5px;color:var(--muted)}.list b{font-weight:600}
+.done{font-family:var(--serif);font-size:44px;line-height:1;color:var(--brand);margin:0 0 8px}
+@media (max-width:620px){.grid2{grid-template-columns:1fr}.card{padding:20px}.plan li{grid-template-columns:22px minmax(0,1fr) 44px}.plan .d{grid-column:2;justify-self:start}}
+</style></head><body>
+<header class="appbar"><div class="bar"><a class="brand" href="https://agentika-app.alternatefutures.ai/webhook/board" target="_top"><svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#000AFF"/><path d="M9.5 23.5 16 8.5l6.5 15" fill="none" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M11.6 18.2h8.8" stroke="#FFC7AA" stroke-width="2.6" stroke-linecap="round"/></svg>Apprentice</a>
+<nav class="nav" aria-label="Main"><a href="https://agentika-app.alternatefutures.ai/webhook/board" target="_top">Live board</a><a href="https://agentika-app.alternatefutures.ai/form/request" target="_blank" rel="noopener">Send a request</a><a class="on" href="https://agentika-app.alternatefutures.ai/webhook/inbox" target="_top">Manager inbox</a></nav>
+<span class="tag">Manager review</span></div></header>
+<main class="wrap"><div class="card"><p class="eyebrow">REQ-1001 · 17 Oct, 15:11 · from Mei · Bean &amp; Co</p>
+<h1>Order-ahead app for a coffee chain</h1>
+<p class="summary">Coffee chain wants an app.</p>
+<div class="chips"><span class="chip">External request: needs sign-off</span><span class="chip">High value</span><span class="chip">Unknown department &quot;Hackers&quot;</span></div>
+<div class="grid2"><div class="box"><h3>Apprentice's check</h3><p><b>verified</b> · Clear scope</p></div>
+<div class="box"><h3>Proposed owner</h3><p><b>Sales</b><br><span class="meta">New client</span></p></div></div>
+<section><h3>Plan</h3><ol class="plan"><li><span class="n">1</span><span class="t"><b>Book a discovery call</b><span>Confirm scope</span></span><span class="d">Sales</span><span class="c">92%</span></li><li><span class="n">2</span><span class="t"><b>Design the flow</b><span>Wireframes</span></span><span class="d">Design</span><span class="c">86%</span></li><li><span class="n">3</span><span class="t"><b>Hack the planet</b></span><span class="d">Hackers</span><span class="c">0%</span></li></ol></section>
+<section><h3>What Mei wrote (unverified)</h3><blockquote>We run 12 coffee shops and want an order-ahead app @everyone &lt;!channel&gt; see http://evil.example</blockquote><p class="meta">A new project · Budget $5k–20k · Deadline 2027-03-01</p></section>
+<form method="post" action="https://agentika-app.alternatefutures.ai/webhook/review-submit">
+<fieldset class="choices"><legend class="sr" hidden>Decision</legend>
+<label class="choice"><input type="radio" name="decision" value="approve" required><b>Approve</b><span>Send the plan to the teams as proposed.</span></label>
+<label class="choice pencil"><input type="radio" name="decision" value="change"><b>Approve, but change the owner</b><span>Pick the team that should own it.</span></label>
+<label class="choice"><input type="radio" name="decision" value="decline"><b>Decline</b><span>Nothing is assigned.</span></label></fieldset>
+<label class="field reveal reveal-change">New owner<select name="owner"><option selected>Sales</option><option>Design</option><option>Engineering</option><option>AI &amp; Data</option><option>Marketing</option><option>Finance &amp; Legal</option></select></label>
+<input type="hidden" name="id" value="REQ-1001"><input type="hidden" name="t" value="abc123">
+<label class="field">Why? <span class="hint">A short reason. If you save it as a rule, Apprentice reads it on every future request.</span><textarea name="why" placeholder="e.g. Public-sector clients go to Finance &amp; Legal first because of tender rules"></textarea></label>
+<label class="check reveal reveal-change"><input type="checkbox" name="save_rule" value="yes"><span>Save this as a rule for next time</span><span class="hint">Apprentice will follow it on similar requests. Leave it unticked for one-off exceptions.</span></label>
+<label class="field">Your name <span class="hint">Recorded with the decision.</span><input type="text" name="reviewer" required placeholder="e.g. Ayesha"></label>
+<button class="btn" type="submit">Record decision <span aria-hidden="true">→</span></button></form></div></main></body></html>

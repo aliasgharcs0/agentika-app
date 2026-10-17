@@ -1,0 +1,161 @@
+{
+  "name": "Apprentice \u00b7 review page",
+  "nodes": [
+    {
+      "id": "0a7aade3-e71a-454f-af38-9bc424e21067",
+      "name": "Review link",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "review",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "webhookId": "20edce54-eab9-4107-92c2-91fe23d60cec"
+    },
+    {
+      "id": "4ba36772-10d3-462c-aecb-933de5915b4b",
+      "name": "Get request",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        220,
+        0
+      ],
+      "parameters": {
+        "resource": "row",
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "requests"
+        },
+        "returnAll": true,
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "request_id",
+              "condition": "eq",
+              "keyValue": "={{ $json.query.id }}"
+            }
+          ]
+        }
+      },
+      "alwaysOutputData": true,
+      "executeOnce": true
+    },
+    {
+      "id": "33dc7127-390e-4a2e-ba7d-ae1217aebe6c",
+      "name": "Load departments",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        440,
+        0
+      ],
+      "parameters": {
+        "resource": "row",
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "departments"
+        },
+        "returnAll": true
+      },
+      "alwaysOutputData": true,
+      "executeOnce": true
+    },
+    {
+      "id": "4837de70-5e3e-4a5e-b8cd-948f45c8f67e",
+      "name": "Build review page",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const BASE = \"https://agentika-app.alternatefutures.ai\";\n// ---- Apprentice page kit (prepended to Code nodes that render a page). BASE is set by the builder. ----\nconst esc = (v) => String(v ?? '').replace(/[&<>\"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '\"': '&quot;', \"'\": '&#39;' }[c]));\nconst TZ = 'Asia/Karachi';\nconst when = (iso) => {\n  const d = new Date(iso);\n  if (isNaN(d)) return '';\n  try { return new Intl.DateTimeFormat('en-GB', { timeZone: TZ, day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false }).format(d); }\n  catch (e) { return d.toISOString().slice(0, 16).replace('T', ' '); }\n};\nconst MARK = '<svg class=\"mark\" viewBox=\"0 0 32 32\" aria-hidden=\"true\"><rect width=\"32\" height=\"32\" rx=\"9\" fill=\"#000AFF\"/><path d=\"M9.5 23.5 16 8.5l6.5 15\" fill=\"none\" stroke=\"#FFFFFF\" stroke-width=\"2.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M11.6 18.2h8.8\" stroke=\"#FFC7AA\" stroke-width=\"2.6\" stroke-linecap=\"round\"/></svg>';\n\nfunction shell(title, inner, label) {\n  return `<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><meta name=\"color-scheme\" content=\"only light\">\n<title>${esc(title)} \u00b7 Apprentice</title>\n<link rel=\"icon\" href=\"data:image/svg+xml,${encodeURIComponent(MARK.replace('class=\"mark\" ', 'xmlns=\"http://www.w3.org/2000/svg\" '))}\">\n<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\"><link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap\" rel=\"stylesheet\">\n<style>\n/* Theme: Clouds by Alternate Futures brand specification */\n:root{color-scheme:only light;--cream:#F9F5EE;--white:#FFFFFF;--brand:#000AFF;--brand-hover:#0008CC;--brand-tint:#EEF0FF;--dark-blue:#0000AF;--sky:#C8E0E4;--apricot:#FFC7AA;\n--terracotta:#BE4200;--terracotta-tint:#FBEADF;--text:#1A1A1A;--muted:#66635E;--hair:#E6DFD2;--hair-soft:#EFE9DE;--neutral:#F1ECE3;\n--sans:'Instrument Sans','Segoe UI',system-ui,sans-serif;--serif:'Instrument Serif',Georgia,serif;--mono:'JetBrains Mono',ui-monospace,monospace}\n*{box-sizing:border-box}body{margin:0;background:var(--cream);color:var(--text);font:16px/1.55 var(--sans)}a{color:inherit}\n.wrap{max-width:760px;margin:0 auto;padding:0 20px}\n.appbar{background:var(--white);border-bottom:1px solid var(--hair)}\n.appbar .bar{max-width:1200px;margin:0 auto;padding:0 28px;display:flex;align-items:center;gap:28px;height:64px}\n.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:20px;letter-spacing:-.01em;text-decoration:none;color:var(--dark-blue)}\n.mark{width:30px;height:30px}\n.nav{display:flex;gap:4px;margin-right:auto}\n.nav a{padding:8px 12px;border-radius:8px;text-decoration:none;color:var(--muted);font-weight:500;font-size:14px}\n.nav a:hover{color:var(--text);background:var(--cream)}.nav a.on{color:var(--brand);background:var(--brand-tint)}\n.tag{font-size:13px;color:var(--muted);white-space:nowrap}\n@media (max-width:760px){.appbar .bar{padding:0 16px;gap:12px}.nav{display:none}.brand{margin-right:auto}}\n.card{background:var(--white);border:1px solid var(--hair);border-radius:18px;padding:28px;margin:28px 0 40px}\n.eyebrow{margin:0 0 6px;font-family:var(--mono);font-size:12.5px;color:var(--muted)}\nh1{font-weight:700;font-size:clamp(26px,4vw,34px);line-height:1.12;letter-spacing:-.02em;margin:0 0 10px;color:var(--dark-blue)}\nh3{margin:0 0 8px;font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:600}\n.summary{margin:0 0 18px;font-size:16px}\n.chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 22px}\n.chip{display:inline-flex;align-items:center;gap:7px;padding:4px 11px;border-radius:999px;font-size:13px;font-weight:500;background:var(--apricot);color:var(--text)}\n.chip.flag{background:var(--terracotta-tint);color:var(--terracotta)}.chip.ok{background:var(--sky);color:var(--dark-blue)}.chip.muted{background:var(--neutral);color:var(--muted)}\n.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:0 0 22px}\n.box{border:1px solid var(--hair);border-radius:14px;padding:14px 16px;background:var(--cream)}.box p{margin:0}.box b{color:var(--dark-blue)}\nsection{margin:0 0 22px}\n.plan{list-style:none;margin:0;padding:0;border:1px solid var(--hair);border-radius:14px;overflow:hidden}\n.plan li{display:grid;grid-template-columns:28px minmax(0,1fr) auto 52px;gap:12px;align-items:center;padding:11px 14px;border-top:1px solid var(--hair-soft)}\n.plan li:first-child{border-top:0}.plan .n{font-family:var(--mono);font-size:12.5px;color:var(--muted)}\n.plan .t b{display:block;font-weight:600}.plan .t span{display:block;color:var(--muted);font-size:13.5px}\n.plan .d{font-size:13px;padding:3px 9px;background:var(--sky);color:var(--dark-blue);border-radius:999px;white-space:nowrap}\n.plan .c{font-family:var(--mono);font-size:12.5px;color:var(--muted);text-align:right}\nblockquote{margin:0;padding:14px 16px;border-left:3px solid var(--medium-blue,#A5B2FF);background:var(--cream);border-radius:0 12px 12px 0;white-space:pre-wrap}\n.meta{margin:8px 0 0;color:var(--muted);font-size:13px}\nform{border-top:1px solid var(--hair-soft);padding-top:22px}\n.choices{border:0;padding:0;margin:0 0 18px;display:grid;gap:10px}\n.choice{display:grid;grid-template-columns:22px 1fr;gap:4px 10px;align-items:start;padding:14px 16px;border:1px solid var(--hair);border-radius:14px;background:var(--white);cursor:pointer}\n.choice input{margin:3px 0 0;accent-color:var(--brand)}.choice b{font-weight:600}.choice span{grid-column:2;color:var(--muted);font-size:13.5px}\n.choice:has(input:checked){border-color:var(--brand);box-shadow:0 0 0 1px var(--brand);background:var(--brand-tint)}\nlabel.field{display:block;margin:0 0 16px;font-weight:600;font-size:14px}\nlabel.field .hint,label.check .hint{display:block;font-weight:400;color:var(--muted);font-size:13px}\nselect,textarea,input[type=text]{display:block;width:100%;margin-top:6px;padding:12px 13px;border:1px solid #D9D1C2;border-radius:10px;background:var(--white);font:15px var(--sans);color:var(--text)}\ntextarea{min-height:96px;resize:vertical}select:focus,textarea:focus,input:focus{outline:2px solid rgba(0,10,255,.2);border-color:var(--brand)}\nlabel.check{display:grid;grid-template-columns:22px 1fr;gap:2px 10px;margin:0 0 18px;padding:14px 16px;border:1px dashed var(--brand);border-radius:14px;background:var(--brand-tint);font-weight:600;font-size:14px;cursor:pointer}\nlabel.check input{margin:3px 0 0;accent-color:var(--brand)}label.check .hint{grid-column:2}\n@supports selector(:has(*)){form .reveal{display:none}form:has(input[value=\"change\"]:checked) .reveal-change{display:block}form:has(input[value=\"change\"]:checked) label.check.reveal-change{display:grid}form:has(input[value=\"plan\"]:checked) label.check.reveal-plan{display:grid}}\n.btn{display:inline-flex;align-items:center;gap:10px;border:0;background:var(--brand);color:var(--white);padding:13px 22px;border-radius:999px;font:500 15px var(--sans);cursor:pointer;text-decoration:none}\n.btn:hover{background:var(--brand-hover)}.btn.line{background:transparent;color:var(--brand);border:1px solid var(--brand)}\n.list{list-style:none;margin:0;padding:0}.list li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 14px;align-items:center;padding:16px 0;border-top:1px solid var(--hair-soft)}\n.list li:first-child{border-top:0}.list .ref{font-family:var(--mono);font-size:12.5px;color:var(--muted)}.list b{font-weight:600}\n.done{font-family:var(--serif);font-size:44px;line-height:1;color:var(--brand);margin:0 0 8px}\n@media (max-width:620px){.grid2{grid-template-columns:1fr}.card{padding:20px}.plan li{grid-template-columns:22px minmax(0,1fr) 44px}.plan .d{grid-column:2;justify-self:start}}\n</style></head><body>\n<header class=\"appbar\"><div class=\"bar\"><a class=\"brand\" href=\"${BASE}/webhook/board\" target=\"_top\">${MARK}Apprentice</a>\n<nav class=\"nav\" aria-label=\"Main\"><a href=\"${BASE}/webhook/board\" target=\"_top\">Live board</a><a href=\"${BASE}/form/request\" target=\"_blank\" rel=\"noopener\">Send a request</a><a class=\"on\" href=\"${BASE}/webhook/inbox\" target=\"_top\">Manager inbox</a></nav>\n<span class=\"tag\">${esc(label || 'Manager review')}</span></div></header>\n<main class=\"wrap\"><div class=\"card\">${inner}</div></main></body></html>`;\n}\n// ---- end of page kit ----\n\n// The manager's review page: GET /webhook/review?id=REQ-\u2026&t=<token>. Server-rendered, no JavaScript.\nconst q = $('Review link').first().json.query || {};\nconst row = $('Get request').all().map((i) => i.json).find((r) => r.request_id === q.id);\nconst depts = $('Load departments').all().map((i) => i.json).filter((d) => d.name && !String(d.name).startsWith('_')).map((d) => d.name);\nconst TITLES = { 'A new project': 'New project', 'Support for existing work': 'Support request', 'Something else': 'Request', 'Internal task': 'Internal task' };\n\nfunction header(row, r) {\n  const first = String(row.requester_name || 'Someone').trim().split(/\\s+/)[0];\n  const from = [first, row.company].filter(Boolean).join(' \u00b7 ');\n  return `<p class=\"eyebrow\">${esc(row.request_id)} \u00b7 ${esc(when(row.received_at))} \u00b7 from ${esc(from)}${row.origin === 'internal' ? ' (staff)' : ''}</p>\n<h1>${esc(row.title || TITLES[row.request_type] || 'Request')}</h1>\n${row.summary ? `<p class=\"summary\">${esc(row.summary)}</p>` : ''}`;\n}\nfunction wrote(row) {\n  const first = String(row.requester_name || 'Someone').trim().split(/\\s+/)[0];\n  const meta = [row.request_type, row.budget && `Budget ${row.budget}`, row.deadline && `Deadline ${row.deadline}`].filter(Boolean).join(' \u00b7 ');\n  return `<section><h3>What ${esc(first)} wrote (unverified)</h3><blockquote>${esc(row.raw_text)}</blockquote>${meta ? `<p class=\"meta\">${esc(meta)}</p>` : ''}</section>`;\n}\nconst common = (row) => `<input type=\"hidden\" name=\"id\" value=\"${esc(row.request_id)}\"><input type=\"hidden\" name=\"t\" value=\"${esc(row.review_token)}\">\n<label class=\"field\">Why? <span class=\"hint\">A short reason. If you save it as a rule, Apprentice reads it on every future request.</span><textarea name=\"why\" placeholder=\"e.g. Public-sector clients go to Finance &amp; Legal first because of tender rules\"></textarea></label>`;\nconst nameField = `<label class=\"field\">Your name <span class=\"hint\">Recorded with the decision.</span><input type=\"text\" name=\"reviewer\" required placeholder=\"e.g. Ayesha\"></label>\n<button class=\"btn\" type=\"submit\">Record decision <span aria-hidden=\"true\">\u2192</span></button>`;\n\nfunction planPage(row, r) {\n  const chips = (r.review_reasons || []).map((x) => `<span class=\"chip\">${esc(x)}</span>`).join('');\n  const plan = (r.tasks || []).map((t) => `<li><span class=\"n\">${esc(t.step)}</span><span class=\"t\"><b>${esc(t.title)}</b>${t.details ? `<span>${esc(t.details)}</span>` : ''}</span><span class=\"d\">${esc(t.department)}</span><span class=\"c\">${Math.round((Number(t.confidence) || 0) * 100)}%</span></li>`).join('');\n  const options = depts.map((d) => `<option${d === r.primary_department ? ' selected' : ''}>${esc(d)}</option>`).join('');\n  return shell(`Review ${row.request_id}`, `${header(row, r)}\n<div class=\"chips\">${chips}</div>\n<div class=\"grid2\"><div class=\"box\"><h3>Apprentice's check</h3><p><b>${esc(r.verification || 'verified')}</b>${r.verification_reasons ? ` \u00b7 ${esc(r.verification_reasons)}` : ''}</p></div>\n<div class=\"box\"><h3>Proposed owner</h3><p><b>${esc(r.primary_department)}</b>${r.routing_reason ? `<br><span class=\"meta\">${esc(r.routing_reason)}</span>` : ''}</p></div></div>\n<section><h3>Plan</h3><ol class=\"plan\">${plan}</ol></section>\n${wrote(row)}\n<form method=\"post\" action=\"${BASE}/webhook/review-submit\">\n<fieldset class=\"choices\"><legend class=\"sr\" hidden>Decision</legend>\n<label class=\"choice\"><input type=\"radio\" name=\"decision\" value=\"approve\" required><b>Approve</b><span>Send the plan to the teams as proposed.</span></label>\n<label class=\"choice pencil\"><input type=\"radio\" name=\"decision\" value=\"change\"><b>Approve, but change the owner</b><span>Pick the team that should own it.</span></label>\n<label class=\"choice\"><input type=\"radio\" name=\"decision\" value=\"decline\"><b>Decline</b><span>Nothing is assigned.</span></label></fieldset>\n<label class=\"field reveal reveal-change\">New owner<select name=\"owner\">${options}</select></label>\n${common(row)}\n<label class=\"check reveal reveal-change\"><input type=\"checkbox\" name=\"save_rule\" value=\"yes\"><span>Save this as a rule for next time</span><span class=\"hint\">Apprentice will follow it on similar requests. Leave it unticked for one-off exceptions.</span></label>\n${nameField}</form>`);\n}\n\nfunction flaggedPage(row, r) {\n  const reasons = String(r.verification_reasons || '').split(' \u00b7 ').filter(Boolean);\n  if (r.burst) reasons.unshift('3 or more requests from this email in the last hour, so the AI was skipped');\n  if (r.duplicate_of) reasons.push(`Possible duplicate of ${r.duplicate_of}`);\n  const qs = (r.questions || []).map((x) => `<li>${esc(x)}</li>`).join('');\n  return shell(`Review ${row.request_id}`, `${header(row, r)}\n<div class=\"chips\"><span class=\"chip flag\">Flagged: ${esc(r.verification || 'not checked')}</span></div>\n<section><h3>Why Apprentice flagged it</h3><ul>${reasons.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></section>\n${qs ? `<section><h3>Questions Apprentice would ask</h3><ol>${qs}</ol></section>` : ''}\n${wrote(row)}\n<form method=\"post\" action=\"${BASE}/webhook/review-submit\">\n<fieldset class=\"choices\">\n<label class=\"choice\"><input type=\"radio\" name=\"decision\" value=\"plan\" required><b>It's fine, plan it</b><span>Apprentice plans it and it comes back to you if needed.</span></label>\n<label class=\"choice\"><input type=\"radio\" name=\"decision\" value=\"ask\"><b>Ask for more detail</b><span>Marked as waiting for the sender.</span></label>\n<label class=\"choice\"><input type=\"radio\" name=\"decision\" value=\"decline\"><b>Decline</b><span>Nothing is assigned.</span></label></fieldset>\n${common(row)}\n<label class=\"check reveal reveal-plan\"><input type=\"checkbox\" name=\"save_rule\" value=\"yes\"><span>Save this as a rule for next time</span><span class=\"hint\">Apprentice will stop flagging similar requests.</span></label>\n${nameField}</form>`);\n}\n\nlet html;\nif (!row || !q.t || row.review_token !== q.t) {\n  html = shell('Link not valid', '<h1>This link isn\\'t valid</h1><p class=\"summary\">It may be mistyped, or the request was reset.</p>');\n} else if (row.status !== 'awaiting_review') {\n  html = shell('Already decided', `<p class=\"eyebrow\">${esc(row.request_id)}</p><h1>Already decided</h1><p class=\"summary\">${esc(row.decision || row.status)}${row.reviewer ? ` by ${esc(row.reviewer)}` : ''}${row.decided_at ? `, ${esc(when(row.decided_at))}` : ''}.</p><a class=\"btn line\" href=\"${BASE}/webhook/board\" target=\"_top\">Open the live board</a>`);\n} else {\n  let r = {};\n  try { r = JSON.parse(row.review_json || '{}'); } catch (e) { /* bad json \u2192 plan defaults */ }\n  html = r.kind === 'flagged' ? flaggedPage(row, r) : planPage(row, r);\n}\nreturn [{ json: { html } }];\n"
+      }
+    },
+    {
+      "id": "3e0dbb72-cecf-433c-9394-c76cf52343fc",
+      "name": "Send review page",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        880,
+        0
+      ],
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "connections": {
+    "Review link": {
+      "main": [
+        [
+          {
+            "node": "Get request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get request": {
+      "main": [
+        [
+          {
+            "node": "Load departments",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load departments": {
+      "main": [
+        [
+          {
+            "node": "Build review page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build review page": {
+      "main": [
+        [
+          {
+            "node": "Send review page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

@@ -1,0 +1,122 @@
+{
+  "name": "Apprentice \u00b7 staff intake",
+  "nodes": [
+    {
+      "id": "2ccaea37-89a8-4bc7-b584-8437a701b7d6",
+      "name": "Staff form",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.4,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "formTitle": "File an internal task",
+        "formDescription": "For Orbit Studio staff. Clear, routine tasks go straight to the right team; anything uncertain goes to a manager first.",
+        "formFields": {
+          "values": [
+            {
+              "fieldName": "name",
+              "fieldLabel": "Your name",
+              "fieldType": "text",
+              "requiredField": true,
+              "placeholder": "Sara Khan"
+            },
+            {
+              "fieldName": "need",
+              "fieldLabel": "What needs doing?",
+              "fieldType": "textarea",
+              "requiredField": true,
+              "placeholder": "e.g. The contact form in the website footer shows an error when people press Send."
+            },
+            {
+              "fieldName": "deadline",
+              "fieldLabel": "Deadline",
+              "fieldType": "date"
+            }
+          ]
+        },
+        "responseMode": "onReceived",
+        "options": {
+          "path": "internal",
+          "appendAttribution": false,
+          "customCss": "/* Apprentice form styling for n8n 2.6.3, themed with the Clouds by Alternate Futures brand specification.\n   Paste into BOTH Form Triggers \u2192 Options \u2192 Custom Form Styling (the deploy script does this).\n   n8n sanitizes this field, so it avoids double quotes, ampersands and angle brackets. */\n@import url(https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700);\n\n:root {\n\tcolor-scheme: only light;\n\t--font-family: 'Instrument Sans', 'Segoe UI', system-ui, -apple-system, sans-serif;\n\t--font-weight-normal: 400;\n\t--font-weight-bold: 600;\n\t--font-size-body: 13px;\n\t--font-size-label: 14px;\n\t--font-size-input: 15px;\n\t--font-size-header: 30px;\n\t--font-size-paragraph: 15px;\n\t--font-size-subheader: 15px;\n\t--font-size-link: 12px;\n\t--font-size-error: 12.5px;\n\n\t/* Cream page, white card, Dark Blue headings, Brand Blue actions, Terracotta only for alerts */\n\t--color-background: #F9F5EE;\n\t--color-card-bg: #FFFFFF;\n\t--color-card-border: #E6DFD2;\n\t--color-card-shadow: rgba(0, 0, 175, 0.05);\n\t--color-link: #66635E;\n\t--color-header: #0000AF;\n\t--color-label: #1A1A1A;\n\t--color-input-border: #D9D1C2;\n\t--color-input-text: #1A1A1A;\n\t--color-focus-border: #000AFF;\n\t--color-submit-btn-bg: #000AFF;\n\t--color-submit-btn-text: #FFFFFF;\n\t--color-error: #BE4200;\n\t--color-required: #BE4200;\n\t--color-clear-button-bg: #66635E;\n\t--color-html-text: #1A1A1A;\n\t--color-html-link: #000AFF;\n\t--color-header-subtext: #66635E;\n\t--color-test-notice-text: #1A1A1A;\n\t--color-test-notice-bg: #FFC7AA;\n\t--color-test-notice-border: #FFC7AA;\n\n\t--border-radius-card: 16px;\n\t--card-border-radius: 16px;\n\t--border-radius-input: 10px;\n\t--padding-container-top: 48px;\n\t--padding-card: 32px;\n\t--card-padding: 32px;\n\t--padding-form-input: 13px;\n\t--container-width: 560px;\n\t--submit-btn-height: 50px;\n\t--box-shadow-card: 0 1px 2px rgba(0, 0, 175, 0.04), 0 16px 40px rgba(0, 0, 175, 0.06);\n\t--opacity-placeholder: 0.45;\n}\n\nh1 {\n\tfont-weight: 700;\n\tletter-spacing: -0.02em;\n}\n\ninput,\ntextarea,\nselect,\nbutton {\n\tfont-family: inherit;\n}\n\ntextarea {\n\tmin-height: 132px;\n\tline-height: 1.5;\n}\n\nbutton {\n\tborder-radius: 999px;\n\tfont-weight: 500;\n\tletter-spacing: 0.01em;\n}\n\ninput:focus,\ntextarea:focus,\nselect:focus {\n\tbox-shadow: 0 0 0 3px rgba(0, 10, 255, 0.12);\n}\n\nhtml,\nbody {\n\tbackground: #F9F5EE;\n}\n",
+          "buttonLabel": "File task",
+          "respondWithOptions": {
+            "values": {
+              "respondWith": "text",
+              "formSubmittedText": "Filed. Apprentice is on it. Watch it on the live board: https://agentika-app.alternatefutures.ai/webhook/board"
+            }
+          }
+        },
+        "authentication": "basicAuth"
+      },
+      "webhookId": "a931466f-2fe7-4bb1-976f-6bfe35d6709a",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "SET-IN-N8N",
+          "name": "set in n8n"
+        }
+      }
+    },
+    {
+      "id": "465d3832-4078-4e24-b431-d16f4d369eb8",
+      "name": "Tag staff",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        0
+      ],
+      "parameters": {
+        "jsCode": "return $input.all().map((i) => ({ json: { ...i.json, origin: 'internal' } }));"
+      }
+    },
+    {
+      "id": "4f0d27c4-931e-43b6-abc4-50535cdd0315",
+      "name": "Hand to intake",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.1,
+      "position": [
+        440,
+        0
+      ],
+      "parameters": {
+        "source": "database",
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "SET-IN-N8N"
+        },
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Staff form": {
+      "main": [
+        [
+          {
+            "node": "Tag staff",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tag staff": {
+      "main": [
+        [
+          {
+            "node": "Hand to intake",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

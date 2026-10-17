@@ -1,0 +1,58 @@
+{
+  "_how_to_use": "Discord 'Send and Wait for Response' → Response Type: Custom Form → Define Form: Using JSON. Paste ONE of the arrays below. Replace the Reviewer names with your own. Department names must match the departments table exactly.",
+  "review_plan": [
+    {
+      "fieldLabel": "Decision",
+      "fieldType": "dropdown",
+      "fieldOptions": { "values": [{ "option": "Approve" }, { "option": "Approve, but change the owner" }, { "option": "Decline" }] },
+      "requiredField": true
+    },
+    {
+      "fieldLabel": "New owner",
+      "fieldType": "dropdown",
+      "fieldOptions": { "values": [{ "option": "Sales" }, { "option": "Design" }, { "option": "Engineering" }, { "option": "AI & Data" }, { "option": "Marketing" }, { "option": "Finance & Legal" }] }
+    },
+    {
+      "fieldLabel": "Why?",
+      "fieldType": "textarea",
+      "placeholder": "e.g. Public-sector clients go to Finance & Legal first because of tender rules"
+    },
+    {
+      "fieldLabel": "Save this as a rule for next time?",
+      "fieldType": "dropdown",
+      "fieldOptions": { "values": [{ "option": "No, just this once" }, { "option": "Yes, always do this" }] },
+      "requiredField": true
+    },
+    {
+      "fieldLabel": "Reviewer",
+      "fieldType": "dropdown",
+      "fieldOptions": { "values": [{ "option": "Your name" }, { "option": "Teammate's name" }] },
+      "requiredField": true
+    }
+  ],
+  "review_flagged": [
+    {
+      "fieldLabel": "Decision",
+      "fieldType": "dropdown",
+      "fieldOptions": { "values": [{ "option": "It's fine, plan it" }, { "option": "Ask for more detail" }, { "option": "Decline" }] },
+      "requiredField": true
+    },
+    {
+      "fieldLabel": "Why?",
+      "fieldType": "textarea",
+      "placeholder": "e.g. Small shops often use Gmail; that alone isn't suspicious"
+    },
+    {
+      "fieldLabel": "Save this as a rule for next time?",
+      "fieldType": "dropdown",
+      "fieldOptions": { "values": [{ "option": "No, just this once" }, { "option": "Yes, always do this" }] },
+      "requiredField": true
+    },
+    {
+      "fieldLabel": "Reviewer",
+      "fieldType": "dropdown",
+      "fieldOptions": { "values": [{ "option": "Your name" }, { "option": "Teammate's name" }] },
+      "requiredField": true
+    }
+  ]
+}

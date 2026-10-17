@@ -1,0 +1,184 @@
+{
+  "name": "Apprentice \u00b7 live board",
+  "nodes": [
+    {
+      "id": "864181b8-f897-4f5c-a26b-2f955f346966",
+      "name": "Board page",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "board",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "webhookId": "2741d71d-01ae-4abc-be2e-f53b59fd9670"
+    },
+    {
+      "id": "5e3331e0-51f2-45d6-931e-4b096bed4e41",
+      "name": "Get requests",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        220,
+        0
+      ],
+      "parameters": {
+        "resource": "row",
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "requests"
+        },
+        "returnAll": true
+      },
+      "alwaysOutputData": true
+    },
+    {
+      "id": "63521cd1-6d3f-4c21-99ec-f71d5d6beaec",
+      "name": "Get tasks",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        440,
+        0
+      ],
+      "parameters": {
+        "resource": "row",
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "tasks"
+        },
+        "returnAll": true
+      },
+      "alwaysOutputData": true,
+      "executeOnce": true
+    },
+    {
+      "id": "c10c04c1-34a9-45d1-97b8-3b2e6164348e",
+      "name": "Get rules",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        660,
+        0
+      ],
+      "parameters": {
+        "resource": "row",
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "corrections"
+        },
+        "returnAll": true
+      },
+      "alwaysOutputData": true,
+      "executeOnce": true
+    },
+    {
+      "id": "1f2b23fc-ad9f-4b9f-b094-5a9b9c51872e",
+      "name": "Build board",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        0
+      ],
+      "parameters": {
+        "jsCode": "// Apprentice \u00b7 live board (dashboard)\n// n8n Code node \u00b7 Mode: \"Run Once for All Items\" \u00b7 Language: JavaScript\n//\n// Inputs: Webhook \"Board page\" (GET /webhook/board?view=all|manager|sent|declined) and three Data Table\n// \"Get\" nodes (Return All, Always Output Data ON) named exactly: Get requests \u00b7 Get tasks \u00b7 Get rules.\n// Output: one item { html } \u2192 Respond to Webhook (Text, body {{ $json.html }}, Content-Type text/html).\n//\n// n8n 2.x serves webhook HTML in a sandbox (no cookies, separate origin), so this page needs no\n// client-side JavaScript: everything is rendered here, tabs are links, and a meta tag refreshes it.\n\nconst BASE = 'https://agentika-app.alternatefutures.ai';\nconst FORM_URL = `${BASE}/form/request`;\nconst BOARD_URL = `${BASE}/webhook/board`;\nconst INBOX_URL = `${BASE}/webhook/inbox`;\nconst REFRESH_SECONDS = 15;\nconst TZ = 'Asia/Karachi';\nconst TEAMS = ['Sales', 'Design', 'Engineering', 'AI & Data', 'Marketing', 'Finance & Legal'];\n\nconst read = (node) => { try { return $(node).all().map((i) => i.json); } catch (e) { return []; } };\nlet view = 'all';\ntry { view = String(($('Board page').first().json.query || {}).view || 'all'); } catch (e) { /* preview */ }\nconst requests = read('Get requests').filter((r) => r.request_id)\n  .sort((a, b) => new Date(b.received_at) - new Date(a.received_at));\nconst tasks = read('Get tasks').filter((t) => t.request_id);\nconst rules = read('Get rules').filter((r) => r.rule && String(r.active) !== 'false')\n  .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));\n\nconst esc = (v) => String(v ?? '').replace(/[&<>\"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '\"': '&quot;', \"'\": '&#39;' }[c]));\nconst fmt = (d, opts) => { try { return new Intl.DateTimeFormat('en-GB', { timeZone: TZ, ...opts }).format(d); } catch (e) { return d.toISOString().slice(11, 16); } };\nconst clock = (d) => fmt(d, { hour: '2-digit', minute: '2-digit', hour12: false });\nconst when = (iso) => {\n  const d = new Date(iso);\n  if (isNaN(d)) return '';\n  const day = (x) => fmt(x, { day: 'numeric', month: 'short' });\n  return day(d) === day(new Date()) ? clock(d) : `${day(d)}, ${clock(d)}`;\n};\nconst firstName = (n) => String(n || '').trim().split(/\\s+/)[0] || 'Someone';\nconst TYPE_TITLES = {\n  'A new project': 'New project', 'Support for existing work': 'Support request', 'Something else': 'Request',\n  'New project / lead': 'New project', 'Support': 'Support request', 'Other': 'Request', 'Internal task': 'Internal task',\n};\nconst titleOf = (r) => r.title || TYPE_TITLES[r.request_type] || 'Request';\nconst pct = (a, b) => (b ? `${Math.round((100 * a) / b)}%` : '\u2013');\n\nfunction statusOf(r) {\n  switch (r.status) {\n    case 'assigned': return r.lane === 'auto' ? ['Sent automatically', 'ok'] : ['Approved and sent', 'ok'];\n    case 'approved': return ['Approved, sending', 'ok'];\n    case 'awaiting_review': return ['With a manager', 'wait'];\n    case 'needs_info': return ['Needs more detail', 'wait-line'];\n    case 'suspicious': return ['Flagged as suspicious', 'flag'];\n    case 'out_of_scope': return ['Not work we do', 'muted-line'];\n    case 'rejected': return ['Declined', 'muted'];\n    case 'expired': return ['No decision in time', 'muted-line'];\n    case 'error': return ['Needs attention', 'flag'];\n    case 'verified': return ['Planning', 'neutral'];\n    default: return ['Checking', 'neutral'];\n  }\n}\nfunction routeOf(r) {\n  const ai = r.ai_department;\n  const fin = r.final_department;\n  const who = esc(r.reviewer || 'a manager');\n  if (r.status === 'rejected') return ai || fin ? `<span class=\"dim\">${esc(ai || fin)}</span><span class=\"by\">declined by ${who}</span>` : `<span class=\"dim\">Declined by ${who}</span>`;\n  if (!ai && !fin) {\n    if (['needs_info', 'suspicious', 'out_of_scope', 'awaiting_review'].includes(r.status)) return '<span class=\"dim\">Waiting for a manager</span>';\n    return r.status === 'expired' ? '<span class=\"dim\">No decision was made</span>' : '<span class=\"dim\">Not routed yet</span>';\n  }\n  if (r.status === 'awaiting_review') return `${esc(ai)}<span class=\"by\">proposed, waiting for a manager</span>`;\n  if (fin && ai && fin !== ai) return `<s title=\"Apprentice's choice\">${esc(ai)}</s><span class=\"arrow\" aria-hidden=\"true\">\u2192</span><b>${esc(fin)}</b><span class=\"by\">corrected by ${who}</span>`;\n  if (r.lane === 'auto') return `<b>${esc(fin || ai)}</b><span class=\"by\">assigned automatically</span>`;\n  if (r.status === 'assigned') return `<b>${esc(fin || ai)}</b><span class=\"by\">approved by ${who}</span>`;\n  return `${esc(ai || fin)}<span class=\"by\">proposed</span>`;\n}\n\n// ---- numbers ---------------------------------------------------------------------------------\nconst is = (r, ...s) => s.includes(r.status);\nconst total = requests.length;\nconst checked = requests.filter((r) => r.verification || !is(r, 'received')).length;\nconst waiting = requests.filter((r) => is(r, 'awaiting_review')).length;\nconst sent = requests.filter((r) => is(r, 'assigned', 'approved'));\nconst declined = requests.filter((r) => is(r, 'rejected', 'expired')).length;\nconst auto = sent.filter((r) => r.lane === 'auto').length;\nconst decided = requests.filter((r) => r.reviewer && !is(r, 'awaiting_review')).length;\nconst reviewedSent = sent.filter((r) => r.lane === 'review');\nconst asProposed = reviewedSent.filter((r) => !r.final_department || r.final_department === r.ai_department).length;\n\nconst VIEWS = {\n  all: ['All', () => true],\n  manager: ['With a manager', (r) => is(r, 'awaiting_review', 'needs_info', 'suspicious', 'out_of_scope')],\n  sent: ['Sent', (r) => is(r, 'assigned', 'approved')],\n  declined: ['Declined', (r) => is(r, 'rejected', 'expired')],\n};\nif (!VIEWS[view]) view = 'all';\nconst shown = requests.filter(VIEWS[view][1]);\n\nconst perTeam = {};\nfor (const t of tasks) perTeam[t.department] = (perTeam[t.department] || 0) + 1;\nconst teamNames = [...TEAMS, ...Object.keys(perTeam).filter((d) => !TEAMS.includes(d))];\nconst maxTeam = Math.max(1, ...Object.values(perTeam));\n\n// ---- markup --------------------------------------------------------------------------------\nconst MARK = '<svg class=\"mark\" viewBox=\"0 0 32 32\" aria-hidden=\"true\"><rect width=\"32\" height=\"32\" rx=\"9\" fill=\"#000AFF\"/><path d=\"M9.5 23.5 16 8.5l6.5 15\" fill=\"none\" stroke=\"#FFFFFF\" stroke-width=\"2.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M11.6 18.2h8.8\" stroke=\"#FFC7AA\" stroke-width=\"2.6\" stroke-linecap=\"round\"/></svg>';\nconst FAVICON = 'data:image/svg+xml,' + encodeURIComponent(MARK.replace('class=\"mark\" ', 'xmlns=\"http://www.w3.org/2000/svg\" '));\n\nconst stage = (n, label, value, note, cls = '') => `<li class=\"stage ${cls}\"><span class=\"s-n\">${n}</span><span class=\"s-v\">${value}</span><span class=\"s-l\">${label}</span><span class=\"s-note\">${note}</span></li>`;\nconst kpi = (label, value, note, cls = '') => `<div class=\"kpi ${cls}\"><div class=\"k-l\">${label}</div><div class=\"k-v\">${value}</div><div class=\"k-note\">${note}</div></div>`;\n\nconst tabs = Object.entries(VIEWS).map(([key, [label, test]]) =>\n  `<a class=\"tab${key === view ? ' on' : ''}\" href=\"${BOARD_URL}?view=${key}\" target=\"_top\">${label}<span class=\"t-c\">${requests.filter(test).length}</span></a>`).join('');\n\nconst rowsHtml = shown.slice(0, 15).map((r) => {\n  const [label, tone] = statusOf(r);\n  return `<tr>\n    <td class=\"c-ref\"><span class=\"ref\">${esc(r.request_id)}</span><span class=\"time\">${esc(when(r.received_at))}</span></td>\n    <td class=\"c-from\">${esc(firstName(r.requester_name))}${r.origin === 'internal' ? '<span class=\"tag\">staff</span>' : ''}</td>\n    <td class=\"c-title\">${esc(titleOf(r))}</td>\n    <td class=\"c-route\">${routeOf(r)}</td>\n    <td class=\"c-status\"><span class=\"chip ${tone}\">${esc(label)}</span></td>\n  </tr>`;\n}).join('');\n\nconst emptyText = total\n  ? `<p><b>Nothing here.</b> No requests in \u201c${esc(VIEWS[view][0])}\u201d right now.</p>`\n  : `<p><b>No requests yet.</b> Send the first one and watch Apprentice check it, plan it and route it.</p><a class=\"btn small\" href=\"${FORM_URL}\" target=\"_blank\" rel=\"noopener\">Send a request <span aria-hidden=\"true\">\u2192</span></a>`;\n\nconst rulesHtml = rules.slice(0, 6).map((r) => `<li class=\"rule\"><q>${esc(r.rule)}</q>\n  <div class=\"meta\">${r.ai_department && r.human_department ? `<span><s>${esc(r.ai_department)}</s> \u2192 ${esc(r.human_department)}</span>` : `<span>${esc(r.agent === 'verifier' ? 'Verifier rule' : 'Rule')}</span>`}<span>taught by ${esc(r.created_by || 'a manager')}${r.created_at ? ` \u00b7 ${esc(when(r.created_at))}` : ''}</span></div></li>`).join('');\n\nconst teamsHtml = teamNames.map((d) => {\n  const n = perTeam[d] || 0;\n  return `<li><span class=\"t-name\">${esc(d)}</span><span class=\"t-bar\"><i style=\"width:${Math.round((100 * n) / maxTeam)}%\"></i></span><span class=\"t-n\">${n}</span></li>`;\n}).join('');\n\nconst now = new Date();\nconst html = `<!doctype html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<meta name=\"color-scheme\" content=\"only light\">\n<meta http-equiv=\"refresh\" content=\"${REFRESH_SECONDS}\">\n<title>Live board \u00b7 Apprentice</title>\n<meta name=\"description\" content=\"Apprentice checks every request, splits it into tasks and routes them to the right team. A manager makes the calls that matter.\">\n<link rel=\"icon\" href=\"${FAVICON}\">\n<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\"><link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap\" rel=\"stylesheet\">\n<style>\n/* Theme: Clouds by Alternate Futures brand specification (docs.alternatefutures.ai/brand-guide) */\n:root{color-scheme:only light;--cream:#F9F5EE;--white:#FFFFFF;--brand:#000AFF;--brand-hover:#0008CC;--brand-tint:#EEF0FF;--dark-blue:#0000AF;--medium-blue:#A5B2FF;\n--sky:#C8E0E4;--apricot:#FFC7AA;--terracotta:#BE4200;--terracotta-tint:#FBEADF;--text:#1A1A1A;--muted:#66635E;--hair:#E6DFD2;--hair-soft:#EFE9DE;--neutral:#F1ECE3;\n--sans:'Instrument Sans','Segoe UI',system-ui,-apple-system,sans-serif;--serif:'Instrument Serif',Georgia,serif;--mono:'JetBrains Mono',ui-monospace,monospace}\n*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}\nbody{margin:0;background:var(--cream);color:var(--text);font:16px/1.55 var(--sans);font-variant-numeric:tabular-nums}\na{color:inherit}\n.wrap{max-width:1200px;margin:0 auto;padding:0 28px}\n\n/* app header */\n.appbar{background:var(--white);border-bottom:1px solid var(--hair)}\n.appbar .wrap{display:flex;align-items:center;gap:28px;height:64px}\n.brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-weight:700;font-size:20px;letter-spacing:-.01em;color:var(--dark-blue)}\n.mark{width:30px;height:30px;flex:none}\n.nav{display:flex;gap:4px;margin-right:auto}\n.nav a{padding:8px 12px;border-radius:8px;text-decoration:none;color:var(--muted);font-weight:500;font-size:14px}\n.nav a:hover{color:var(--text);background:var(--cream)}\n.nav a.on{color:var(--brand);background:var(--brand-tint)}\n.live{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px;white-space:nowrap}\n.dot{width:8px;height:8px;border-radius:50%;background:var(--brand);animation:pulse 2.4s ease-out infinite}\n@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(0,10,255,.4)}70%{box-shadow:0 0 0 8px rgba(0,10,255,0)}100%{box-shadow:0 0 0 0 rgba(0,10,255,0)}}\n@media (prefers-reduced-motion:reduce){.dot{animation:none}}\n.btn{display:inline-flex;align-items:center;gap:10px;background:var(--brand);color:var(--white);padding:10px 16px;border-radius:999px;font-weight:500;font-size:14px;text-decoration:none;white-space:nowrap}\n.btn:hover{background:var(--brand-hover)}.btn.small{padding:9px 15px;font-size:13.5px}\n\n/* page header */\n.pagehead{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;padding:34px 0 22px}\n.eyebrow{margin:0 0 6px;font-family:var(--mono);font-size:12px;letter-spacing:.04em;color:var(--muted);text-transform:uppercase}\nh1{margin:0;font-weight:700;font-size:clamp(32px,3.6vw,44px);line-height:1.06;letter-spacing:-.02em;color:var(--dark-blue)}\n.lede{margin:8px 0 0;font-size:16px;max-width:62ch}\n.tagline{margin:0;font-family:var(--serif);font-size:24px;line-height:1.2;text-align:right;white-space:nowrap;color:var(--dark-blue)}\n.tagline em{font-style:italic;color:var(--brand)}\n\n/* pipeline */\n.label{margin:0 0 10px;font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:600}\n.pipeline{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));background:var(--white);border:1px solid var(--hair);border-radius:16px;overflow:hidden}\n.stage{position:relative;display:grid;grid-template-columns:auto 1fr;grid-template-areas:\"n v\" \"l l\" \"note note\";gap:2px 10px;padding:16px 18px 18px;border-left:1px solid var(--hair-soft)}\n.stage:first-child{border-left:0}\n.stage:not(:last-child)::after{content:\"\";position:absolute;right:-7px;top:50%;width:12px;height:12px;background:var(--white);border-top:1px solid var(--hair);border-right:1px solid var(--hair);transform:translateY(-50%) rotate(45deg);z-index:1}\n.s-n{grid-area:n;align-self:center;display:inline-grid;place-items:center;width:22px;height:22px;border-radius:6px;background:var(--neutral);font-family:var(--mono);font-size:11.5px;color:var(--muted)}\n.s-v{grid-area:v;font-weight:700;font-size:30px;line-height:1;color:var(--dark-blue)}\n.s-l{grid-area:l;margin-top:8px;font-weight:600;font-size:14px}\n.s-note{grid-area:note;color:var(--muted);font-size:12.5px;line-height:1.35}\n.stage.human{background:var(--brand-tint)}.stage.human::after{background:var(--brand-tint)}\n.stage.human .s-n{background:var(--brand);color:var(--white)}.stage.human .s-v{color:var(--brand)}\n.stage.end .s-v{color:var(--muted)}\n\n/* KPI cards */\n.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:18px 0 0}\n.kpi{background:var(--white);border:1px solid var(--hair);border-radius:14px;padding:16px 18px}\n.k-l{font-size:13px;color:var(--muted);font-weight:500}\n.k-v{margin-top:6px;font-weight:700;font-size:30px;line-height:1.05;color:var(--dark-blue)}\n.k-note{margin-top:4px;color:var(--muted);font-size:12.5px}\n.kpi.accent .k-v{color:var(--brand)}\n\n/* main grid */\n.main{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:28px;padding:30px 0 48px;align-items:start}\n.panel{background:var(--white);border:1px solid var(--hair);border-radius:16px;overflow:hidden}\n.panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;border-bottom:1px solid var(--hair-soft)}\nh2{margin:0;font-weight:600;font-size:18px;letter-spacing:-.01em;color:var(--dark-blue)}\n.side h2{font-family:var(--serif);font-weight:400;font-size:23px;letter-spacing:0}\n.panel-sub{margin:0;color:var(--muted);font-size:12.5px}\n.panel-sub s{text-decoration-thickness:2px}\n.panel-sub b{color:var(--brand);font-weight:600}\n\n/* tabs */\n.tabs{display:flex;gap:4px;padding:10px 12px 0;border-bottom:1px solid var(--hair-soft);overflow-x:auto}\n.tab{display:inline-flex;align-items:center;gap:8px;padding:9px 12px;text-decoration:none;color:var(--muted);font-weight:500;font-size:14px;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}\n.tab:hover{color:var(--text)}.tab.on{color:var(--brand);border-bottom-color:var(--brand)}\n.t-c{min-width:22px;padding:1px 7px;border-radius:999px;background:var(--neutral);font-size:12px;text-align:center;color:var(--muted)}\n.tab.on .t-c{background:var(--brand);color:var(--white)}\n\n/* table */\ntable{width:100%;border-collapse:collapse}\nth{padding:10px 18px;text-align:left;font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:600;background:#FCFAF6;border-bottom:1px solid var(--hair-soft)}\ntd{padding:14px 18px;border-bottom:1px solid var(--hair-soft);vertical-align:middle}\ntr:last-child td{border-bottom:0}\ntbody tr:hover td{background:#FCFAF6}\n.ref{display:block;font-family:var(--mono);font-size:12.5px;font-feature-settings:'liga' 1,'calt' 1}\n.time{display:block;color:var(--muted);font-size:12.5px}\n.tag{margin-left:6px;padding:1px 6px;border:1px solid var(--hair);border-radius:6px;font-size:11px;color:var(--muted);vertical-align:1px}\n.c-title{font-weight:500;line-height:1.35}\n.c-route{font-size:14px;line-height:1.35}\n.c-route s{color:var(--muted);text-decoration-thickness:2px}\n.c-route .arrow{margin:0 6px;color:var(--muted)}\n.c-route b{font-weight:600;white-space:nowrap;color:var(--brand)}\n.c-route .by{display:block;margin-top:2px;color:var(--muted);font-size:12.5px}\n.dim{color:var(--muted)}\n.chip{display:inline-flex;align-items:center;gap:7px;padding:4px 10px;border-radius:999px;font-size:12.5px;font-weight:500;line-height:1.3;white-space:nowrap}\n.chip::before{content:\"\";width:6px;height:6px;border-radius:50%;background:currentColor;flex:none}\n.chip.ok{background:var(--sky);color:var(--dark-blue)}\n.chip.wait{background:var(--apricot);color:var(--text)}\n.chip.wait-line{box-shadow:inset 0 0 0 1px var(--apricot);color:var(--text)}\n.chip.flag{background:var(--terracotta-tint);color:var(--terracotta)}\n.chip.muted{background:var(--neutral);color:var(--muted)}\n.chip.muted-line,.chip.neutral{box-shadow:inset 0 0 0 1px var(--hair);color:var(--muted)}\n.empty{padding:34px 24px;text-align:center}.empty p{margin:0 0 14px}\n\n/* sidebar */\n.side{display:grid;gap:22px}\n.rules{list-style:none;margin:0;padding:0}\n.rule{padding:15px 18px;border-top:1px solid var(--hair-soft)}.rule:first-child{border-top:0}\n.rule q{display:block;font-family:var(--serif);font-size:19px;line-height:1.3;color:var(--dark-blue);quotes:\"\\\\201C\" \"\\\\201D\"}\n.rule .meta{margin-top:8px;display:flex;flex-wrap:wrap;gap:4px 12px;color:var(--muted);font-size:12.5px}\n.rule .meta s{text-decoration-thickness:2px}\n.rules-empty{margin:0;padding:16px 18px;color:var(--muted);font-size:13.5px}\n.teams{list-style:none;margin:0;padding:8px 18px 14px}\n.teams li{display:grid;grid-template-columns:118px minmax(0,1fr) 26px;gap:10px;align-items:center;padding:7px 0;font-size:13.5px}\n.t-bar{height:6px;background:var(--neutral);border-radius:999px;overflow:hidden}.t-bar i{display:block;height:100%;background:var(--dark-blue);border-radius:999px}\n.t-n{text-align:right;font-family:var(--mono);font-size:12.5px;color:var(--muted)}\n\n.foot{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px 24px;padding:20px 0 36px;border-top:1px solid var(--hair);color:var(--muted);font-size:13px}\n\n/* responsive */\n@media (max-width:1080px){\n  .main{grid-template-columns:1fr}\n  .tagline{display:none}\n  .pipeline{grid-template-columns:repeat(3,minmax(0,1fr))}\n  .stage:nth-child(4){border-left:0}.stage:nth-child(n+4){border-top:1px solid var(--hair-soft)}\n  .stage::after{display:none}\n  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}\n}\n@media (max-width:760px){\n  .wrap{padding:0 16px}\n  .appbar .wrap{gap:12px}\n  .nav,.live{display:none}\n  .brand{margin-right:auto}\n  .pipeline{grid-template-columns:1fr 1fr}\n  .stage{border-left:0;border-top:1px solid var(--hair-soft)}\n  .stage:nth-child(-n+2){border-top:0}.stage:nth-child(even){border-left:1px solid var(--hair-soft)}\n  thead{display:none}\n  table,tbody,tr,td{display:block;width:100%}\n  tr{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:\"ref status\" \"title title\" \"route route\";gap:4px 12px;padding:14px 16px;border-bottom:1px solid var(--hair-soft)}\n  td{padding:0;border:0}\n  .c-ref{grid-area:ref;display:flex;gap:10px;align-items:baseline}.c-from{display:none}\n  .c-title{grid-area:title}.c-route{grid-area:route}.c-status{grid-area:status}\n}\n</style>\n</head>\n<body>\n<header class=\"appbar\"><div class=\"wrap\">\n  <a class=\"brand\" href=\"${BOARD_URL}\" target=\"_top\">${MARK}Apprentice</a>\n  <nav class=\"nav\" aria-label=\"Main\">\n    <a class=\"on\" href=\"${BOARD_URL}\" target=\"_top\">Live board</a>\n    <a href=\"${FORM_URL}\" target=\"_blank\" rel=\"noopener\">Send a request</a>\n    <a href=\"${INBOX_URL}\" target=\"_top\">Manager inbox</a>\n  </nav>\n  <span class=\"live\"><span class=\"dot\"></span>Live \u00b7 ${esc(clock(now))} PKT</span>\n  <a class=\"btn\" href=\"${FORM_URL}\" target=\"_blank\" rel=\"noopener\">Send a request <span aria-hidden=\"true\">\u2192</span></a>\n</div></header>\n\n<main class=\"wrap\">\n  <section class=\"pagehead\">\n    <div>\n      <p class=\"eyebrow\">Orbit Studio \u00b7 request pipeline</p>\n      <h1>Live board</h1>\n      <p class=\"lede\">Apprentice checks every request, plans the work and routes it to the right team. A manager makes the calls that matter, and each rule they teach is remembered.</p>\n    </div>\n    <p class=\"tagline\">AI sorts the work.<br><em>People make the call.</em></p>\n  </section>\n\n  <p class=\"label\">How requests flow</p>\n  <ol class=\"pipeline\">\n    ${stage('1', 'Received', total, 'From the website form or staff')}\n    ${stage('2', 'Checked by AI', checked, 'Genuine, clear and our kind of work?')}\n    ${stage('3', 'With a manager', waiting, 'Needs a human decision', 'human')}\n    ${stage('4', 'Sent to teams', sent.length, 'Tasks posted in team channels')}\n    ${stage('\u2013', 'Declined', declined, 'Nothing was assigned', 'end')}\n  </ol>\n\n  <section class=\"kpis\" aria-label=\"Key numbers\">\n    ${kpi('Handled automatically', auto, sent.length ? `${pct(auto, sent.length)} of requests sent to teams` : 'None sent to teams yet')}\n    ${kpi('Decided by a manager', decided, 'Approvals, corrections and declines')}\n    ${kpi('Approved as proposed', pct(asProposed, reviewedSent.length), 'Plans a manager approved without changes', 'accent')}\n    ${kpi('Rules learned', rules.length, 'Taught by managers, applied every time')}\n  </section>\n\n  <div class=\"main\">\n    <section class=\"panel\" aria-labelledby=\"requests\">\n      <div class=\"panel-head\"><h2 id=\"requests\">Requests</h2><p class=\"panel-sub\">Newest first \u00b7 <s>struck out</s> = Apprentice's choice \u00b7 <b>blue</b> = the manager's call</p></div>\n      <nav class=\"tabs\" aria-label=\"Filter requests\">${tabs}</nav>\n      ${shown.length ? `<table><thead><tr><th>Reference</th><th>From</th><th>Request</th><th>Who handles it</th><th>Status</th></tr></thead><tbody>${rowsHtml}</tbody></table>` : `<div class=\"empty\">${emptyText}</div>`}\n    </section>\n\n    <aside class=\"side\">\n      <section class=\"panel\" aria-labelledby=\"learned\">\n        <div class=\"panel-head\"><h2 id=\"learned\">What Apprentice has learned</h2></div>\n        ${rules.length ? `<ul class=\"rules\">${rulesHtml}</ul>` : '<p class=\"rules-empty\">Nothing yet. When a manager corrects a request and ticks <i>Save as a rule</i>, the rule appears here and Apprentice follows it from then on.</p>'}\n      </section>\n      <section class=\"panel\" aria-labelledby=\"teams\">\n        <div class=\"panel-head\"><h2 id=\"teams\">Work per team</h2><p class=\"panel-sub\">Tasks sent</p></div>\n        <ul class=\"teams\">${teamsHtml}</ul>\n      </section>\n    </aside>\n  </div>\n</main>\n\n<footer class=\"wrap\"><div class=\"foot\">\n  <span>Apprentice \u00b7 AI sorts the work. People make the call.</span>\n  <span>Built with n8n, hosted on Clouds by Alternate Futures \u00b7 Updates every ${REFRESH_SECONDS} seconds \u00b7 Emails, budgets and messages are never shown here</span>\n</div></footer>\n</body>\n</html>`;\n\nreturn [{ json: { html } }];\n"
+      }
+    },
+    {
+      "id": "95babc10-b2c0-4b42-905d-f123fe76d2d7",
+      "name": "Send page",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1100,
+        0
+      ],
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "connections": {
+    "Board page": {
+      "main": [
+        [
+          {
+            "node": "Get requests",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get requests": {
+      "main": [
+        [
+          {
+            "node": "Get tasks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get tasks": {
+      "main": [
+        [
+          {
+            "node": "Get rules",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get rules": {
+      "main": [
+        [
+          {
+            "node": "Build board",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build board": {
+      "main": [
+        [
+          {
+            "node": "Send page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

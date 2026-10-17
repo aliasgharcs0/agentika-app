@@ -1,0 +1,240 @@
+{
+  "name": "Apprentice \u00b7 connect channels",
+  "nodes": [
+    {
+      "id": "3766b1f6-11ac-454e-a6db-47ae71da3489",
+      "name": "Connect form",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.4,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "formTitle": "Connect your channels",
+        "formDescription": "Paste a Slack (or Discord) webhook link for each channel. Apprentice sends a test message to every channel you connect. Leave a field empty to keep its current link.",
+        "formFields": {
+          "values": [
+            {
+              "fieldName": "review",
+              "fieldLabel": "#manager-review",
+              "fieldType": "text",
+              "placeholder": "https://hooks.slack.com/services/\u2026"
+            },
+            {
+              "fieldName": "log",
+              "fieldLabel": "#apprentice-log",
+              "fieldType": "text",
+              "placeholder": "https://hooks.slack.com/services/\u2026"
+            },
+            {
+              "fieldName": "sales",
+              "fieldLabel": "#sales",
+              "fieldType": "text",
+              "placeholder": "https://hooks.slack.com/services/\u2026"
+            },
+            {
+              "fieldName": "design",
+              "fieldLabel": "#design",
+              "fieldType": "text",
+              "placeholder": "https://hooks.slack.com/services/\u2026"
+            },
+            {
+              "fieldName": "engineering",
+              "fieldLabel": "#engineering",
+              "fieldType": "text",
+              "placeholder": "https://hooks.slack.com/services/\u2026"
+            },
+            {
+              "fieldName": "ai_data",
+              "fieldLabel": "#ai-data",
+              "fieldType": "text",
+              "placeholder": "https://hooks.slack.com/services/\u2026"
+            },
+            {
+              "fieldName": "marketing",
+              "fieldLabel": "#marketing",
+              "fieldType": "text",
+              "placeholder": "https://hooks.slack.com/services/\u2026"
+            },
+            {
+              "fieldName": "finance_legal",
+              "fieldLabel": "#finance-legal",
+              "fieldType": "text",
+              "placeholder": "https://hooks.slack.com/services/\u2026"
+            }
+          ]
+        },
+        "responseMode": "onReceived",
+        "options": {
+          "path": "connect",
+          "appendAttribution": false,
+          "customCss": "/* Apprentice form styling for n8n 2.6.3, themed with the Clouds by Alternate Futures brand specification.\n   Paste into BOTH Form Triggers \u2192 Options \u2192 Custom Form Styling (the deploy script does this).\n   n8n sanitizes this field, so it avoids double quotes, ampersands and angle brackets. */\n@import url(https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700);\n\n:root {\n\tcolor-scheme: only light;\n\t--font-family: 'Instrument Sans', 'Segoe UI', system-ui, -apple-system, sans-serif;\n\t--font-weight-normal: 400;\n\t--font-weight-bold: 600;\n\t--font-size-body: 13px;\n\t--font-size-label: 14px;\n\t--font-size-input: 15px;\n\t--font-size-header: 30px;\n\t--font-size-paragraph: 15px;\n\t--font-size-subheader: 15px;\n\t--font-size-link: 12px;\n\t--font-size-error: 12.5px;\n\n\t/* Cream page, white card, Dark Blue headings, Brand Blue actions, Terracotta only for alerts */\n\t--color-background: #F9F5EE;\n\t--color-card-bg: #FFFFFF;\n\t--color-card-border: #E6DFD2;\n\t--color-card-shadow: rgba(0, 0, 175, 0.05);\n\t--color-link: #66635E;\n\t--color-header: #0000AF;\n\t--color-label: #1A1A1A;\n\t--color-input-border: #D9D1C2;\n\t--color-input-text: #1A1A1A;\n\t--color-focus-border: #000AFF;\n\t--color-submit-btn-bg: #000AFF;\n\t--color-submit-btn-text: #FFFFFF;\n\t--color-error: #BE4200;\n\t--color-required: #BE4200;\n\t--color-clear-button-bg: #66635E;\n\t--color-html-text: #1A1A1A;\n\t--color-html-link: #000AFF;\n\t--color-header-subtext: #66635E;\n\t--color-test-notice-text: #1A1A1A;\n\t--color-test-notice-bg: #FFC7AA;\n\t--color-test-notice-border: #FFC7AA;\n\n\t--border-radius-card: 16px;\n\t--card-border-radius: 16px;\n\t--border-radius-input: 10px;\n\t--padding-container-top: 48px;\n\t--padding-card: 32px;\n\t--card-padding: 32px;\n\t--padding-form-input: 13px;\n\t--container-width: 560px;\n\t--submit-btn-height: 50px;\n\t--box-shadow-card: 0 1px 2px rgba(0, 0, 175, 0.04), 0 16px 40px rgba(0, 0, 175, 0.06);\n\t--opacity-placeholder: 0.45;\n}\n\nh1 {\n\tfont-weight: 700;\n\tletter-spacing: -0.02em;\n}\n\ninput,\ntextarea,\nselect,\nbutton {\n\tfont-family: inherit;\n}\n\ntextarea {\n\tmin-height: 132px;\n\tline-height: 1.5;\n}\n\nbutton {\n\tborder-radius: 999px;\n\tfont-weight: 500;\n\tletter-spacing: 0.01em;\n}\n\ninput:focus,\ntextarea:focus,\nselect:focus {\n\tbox-shadow: 0 0 0 3px rgba(0, 10, 255, 0.12);\n}\n\nhtml,\nbody {\n\tbackground: #F9F5EE;\n}\n",
+          "buttonLabel": "Connect",
+          "respondWithOptions": {
+            "values": {
+              "respondWith": "text",
+              "formSubmittedText": "Saved. Every channel you connected just got a test message from Apprentice."
+            }
+          }
+        },
+        "authentication": "basicAuth"
+      },
+      "webhookId": "417ac5aa-76e8-41cc-a45d-9ad6daa63b99",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "SET-IN-N8N",
+          "name": "set in n8n"
+        }
+      }
+    },
+    {
+      "id": "8dfcadf1-fd3c-473a-a4fa-dea933f0198f",
+      "name": "Channel rows",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        0
+      ],
+      "parameters": {
+        "jsCode": "// \"Connect your channels\" form \u2192 one row per valid channel link that was filled in.\nconst f = $input.first().json;\nconst MAP = {\n  sales: 'Sales', design: 'Design', engineering: 'Engineering', ai_data: 'AI & Data',\n  marketing: 'Marketing', finance_legal: 'Finance & Legal', review: '_review', log: '_log',\n};\nconst valid = (u) => /^https:\\/\\/hooks\\.slack\\.com\\/services\\//.test(u) || /^https:\\/\\/(discord|discordapp)\\.com\\/api\\/webhooks\\//.test(u);\nconst rows = [];\nfor (const [field, name] of Object.entries(MAP)) {\n  const url = String(f[field] || '').trim();\n  if (url && valid(url)) rows.push({ json: { name, webhook_url: url } });\n}\nreturn rows;\n"
+      }
+    },
+    {
+      "id": "5f9fd71e-723c-4e48-834c-a3f0de204dfd",
+      "name": "Save links",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        440,
+        0
+      ],
+      "parameters": {
+        "resource": "row",
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "departments"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "name",
+              "condition": "eq",
+              "keyValue": "={{ $json.name }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "webhook_url": "={{ $json.webhook_url }}"
+          }
+        }
+      }
+    },
+    {
+      "id": "31633bb6-0254-49ef-bedc-7225cd05b5e3",
+      "name": "Test messages",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const BASE = \"https://agentika-app.alternatefutures.ai\";\n// ---- Apprentice message kit (prepended to every Code node that posts a message) ----\n// One message design \u2192 Slack (Block Kit, colored card) or Discord (embed), chosen from the webhook URL.\nconst IS_SLACK = (u) => /^https:\\/\\/hooks\\.slack\\.com\\//.test(String(u || ''));\nconst IS_DISCORD = (u) => /^https:\\/\\/(discord|discordapp)\\.com\\/api\\/webhooks\\//.test(String(u || ''));\n// Clouds by Alternate Futures palette: Brand Blue for actions and human decisions, Dark Blue for ownership,\n// Apricot for 'waiting for a manager', Terracotta only for alerts.\nconst COLORS = { ok: '#000AFF', human: '#000AFF', ink: '#0000AF', wait: '#FFC7AA', alert: '#BE4200', muted: '#9A968E' };\nconst TYPE_TITLES = {\n  'A new project': 'New project', 'Support for existing work': 'Support request', 'Something else': 'Request', 'Internal task': 'Internal task',\n};\nconst clip = (s, n) => { const t = String(s ?? '').trim(); return t.length > n ? t.slice(0, n - 1) + '\u2026' : t; };\n\n// Text from requesters (or written by the model from it) is untrusted:\n// no pings, no markup tricks, no clickable links.\nfunction untrusted(s, n, slack) {\n  const t = clip(s, n).replace(/(h)ttp(s?):\\/\\//gi, '$1xxp$2://');\n  return slack\n    ? t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')\n    : t.replace(/([\\\\*_~`|>#[\\]()])/g, '\\\\$1').replace(/@/g, '@\\u200b');\n}\n\n// build(f, u) returns { title, color, lead, fields: [[name, value]], sections: [{ heading, lines }],\n//   quote: { label, text }, button: { text, url }, footer }. f = trusted formatting, u = untrusted text.\nfunction render(url, build) {\n  const slack = IS_SLACK(url);\n  const f = slack\n    ? { b: (x) => `*${x}*`, s: (x) => `~${x}~` }\n    : { b: (x) => `**${x}**`, s: (x) => `~~${x}~~` };\n  const u = (s, n) => untrusted(s, n, slack);\n  const m = build(f, u);\n  const sections = (m.sections || []).filter((sec) => sec.lines && sec.lines.filter(Boolean).length);\n  const quoteText = m.quote ? m.quote.text.split('\\n').filter((l) => l.trim()).slice(0, 8).map((l) => `> ${l}`).join('\\n') : '';\n  if (slack) {\n    const blocks = [];\n    if (m.lead) blocks.push({ type: 'section', text: { type: 'mrkdwn', text: clip(m.lead, 2900) } });\n    if (m.fields && m.fields.length) blocks.push({ type: 'section', fields: m.fields.slice(0, 10).map(([k, v]) => ({ type: 'mrkdwn', text: clip(`*${k}*\\n${v || '\u2013'}`, 1990) })) });\n    for (const sec of sections) blocks.push({ type: 'section', text: { type: 'mrkdwn', text: clip(`${sec.heading ? `*${sec.heading}*\\n` : ''}${sec.lines.filter(Boolean).join('\\n')}`, 2900) } });\n    if (quoteText) blocks.push({ type: 'section', text: { type: 'mrkdwn', text: clip(`*${m.quote.label}*\\n${quoteText}`, 2900) } });\n    if (m.button) blocks.push({ type: 'actions', elements: [{ type: 'button', text: { type: 'plain_text', text: clip(m.button.text, 70) }, url: m.button.url, style: 'primary' }] });\n    if (m.footer) blocks.push({ type: 'context', elements: [{ type: 'mrkdwn', text: clip(m.footer, 290) }] });\n    const body = { text: `*${clip(m.title, 150)}*` };\n    if (blocks.length) body.attachments = [{ color: COLORS[m.color] || COLORS.ink, blocks }];\n    return body;\n  }\n  const description = [\n    m.lead,\n    ...sections.map((sec) => `${sec.heading ? `**${sec.heading}**\\n` : ''}${sec.lines.filter(Boolean).join('\\n')}`),\n    quoteText ? `**${m.quote.label}**\\n${quoteText}` : '',\n    m.button ? `[${m.button.text} \u2192](${m.button.url})` : '',\n  ].filter(Boolean).join('\\n\\n');\n  const embed = { title: clip(m.title, 250), color: parseInt((COLORS[m.color] || COLORS.ink).slice(1), 16), timestamp: new Date().toISOString() };\n  if (description) embed.description = clip(description, 4000); // Discord rejects empty descriptions\n  if (m.fields && m.fields.length) embed.fields = m.fields.slice(0, 10).map(([k, v]) => ({ name: clip(k, 250), value: clip(v || '\u2013', 1000), inline: true }));\n  if (m.footer) embed.footer = { text: clip(m.footer, 200) };\n  return { username: 'Apprentice', allowed_mentions: { parse: [] }, embeds: [embed] };\n}\n\n// The webhook for a team or system channel (rows named \"_review\" and \"_log\"), from the departments table.\nfunction hookOf(name) {\n  try {\n    const d = $('Load departments').all().map((i) => i.json).find((x) => x.name === name);\n    return d && (IS_SLACK(d.webhook_url) || IS_DISCORD(d.webhook_url)) ? d.webhook_url : null;\n  } catch (e) { return null; }\n}\nconst get = (node) => { try { return $(node).first().json; } catch (e) { return null; } };\n// ---- end of message kit ----\n\n// A hello message in every channel that was just connected.\nreturn $('Channel rows').all().map((i) => {\n  const { name, webhook_url: url } = i.json;\n  const label = name === '_review' ? 'manager reviews' : name === '_log' ? 'the activity log' : `${name} tasks`;\n  return { json: { url, body: render(url, (f) => ({\n    title: 'Apprentice is connected',\n    color: 'ok',\n    lead: `This channel will receive ${f.b(label)}.`,\n    footer: 'Apprentice \u00b7 AI sorts the work. People make the call.',\n  })) } };\n});\n"
+      }
+    },
+    {
+      "id": "24d683a4-272d-48b6-a24f-d49ea6acca2e",
+      "name": "Send tests",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        880,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.url }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "sendHeaders": true,
+        "specifyHeaders": "keypair",
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (compatible; Apprentice/1.0)"
+            }
+          ]
+        },
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 500
+            }
+          }
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "connections": {
+    "Connect form": {
+      "main": [
+        [
+          {
+            "node": "Channel rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Channel rows": {
+      "main": [
+        [
+          {
+            "node": "Save links",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save links": {
+      "main": [
+        [
+          {
+            "node": "Test messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Test messages": {
+      "main": [
+        [
+          {
+            "node": "Send tests",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
